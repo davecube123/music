@@ -18,7 +18,7 @@
     del(k) { try { localStorage.removeItem(k); } catch { /* ignore */ } },
   };
   const prefs = Object.assign(
-    { click: true, countIn: true, guitar: true, drumVol: 0.9, clickVol: 0.55, guitarVol: 0.7, lyricSize: 19, showGrid: true },
+    { click: true, countIn: true, cue: true, drumVol: 0.9, clickVol: 0.55, cueVol: 0.6, lyricSize: 19, showGrid: true },
     store.get('bb.prefs', {}),
   );
   const savePrefs = () => store.set('bb.prefs', prefs);
@@ -61,8 +61,7 @@
         if (!patterns[pn]) { console.warn('Unknown pattern', pn, 'in', raw.title); patterns[pn] = { name: pn, steps, bars: 1, tracks: {} }; }
         const cb = s.chords ? s.chords.split('|') : null;
         const chords = cb ? cb[b % cb.length].trim().split(/\s+/).filter(Boolean) : null;
-        const strum = clean(s.strum || raw.strum || 'D-D-DUDU');
-        timeline.push({ si, b, pn, pb, chords: chords && chords.length ? chords : null, strum });
+        timeline.push({ si, b, pn, pb, chords: chords && chords.length ? chords : null });
       }
       return { name: s.name, bars: s.bars, inst: !!s.inst, rate: s.bpm ? s.bpm / raw.bpm : 1, start, end: timeline.length - 1, color: secColor(s.name) };
     });
@@ -89,7 +88,7 @@
   }
 
   /* ---------------- audio engine ---------------- */
-  let ctx, drumBus, clickBus, guitarBus, noiseBuf, openHat = null;
+  let ctx, drumBus, clickBus, cueBus, noiseBuf, openHat = null;
   const METAL = [263, 400, 421, 474, 587, 845];
 
   function initAudio() {
@@ -101,9 +100,7 @@
     comp.connect(ctx.destination);
     drumBus = ctx.createGain(); drumBus.connect(comp);
     clickBus = ctx.createGain(); clickBus.connect(ctx.destination);
-    guitarBus = ctx.createGain();
-    const gTone = filt('lowpass', 4200); gTone.connect(comp);
-    guitarBus.connect(gTone);
+    cueBus = ctx.createGain(); cueBus.connect(ctx.destination);
     applyVolumes();
     const len = ctx.sampleRate * 3;
     noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
@@ -114,7 +111,7 @@
     if (!ctx) return;
     drumBus.gain.value = prefs.drumVol;
     clickBus.gain.value = prefs.clickVol;
-    guitarBus.gain.value = prefs.guitarVol;
+    cueBus.gain.value = prefs.cueVol;
   }
 
   function env(t, peak, decay, dest, attack = 0.001) {
@@ -215,102 +212,59 @@
     osc('triangle', t, f, 0, 0, 0.05).connect(env(t, accent ? 0.7 : 0.45, 0.045, clickBus));
   }
 
-  /* ---------------- guitar (Karplus-Strong plucked strings) ---------------- */
-  const OPEN = [40, 45, 50, 55, 59, 64]; // E2 A2 D3 G3 B3 E4
+  /* ---------------- chord cue (soft held root + chord tones) ---------------- */
+  // Not rhythmic on purpose: one gentle tone per chord change, held until the next,
+  // so the drums carry the groove and the cue only anchors pitch and harmony.
   const NOTE = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
-  const SHAPES = {
-    C: 'x32010', C7: 'x32310', Cmaj7: 'x32000', Cadd9: 'x32030', D: 'xx0232', D7: 'xx0212', Dm: 'xx0231',
-    Dm7: 'xx0211', Dsus2: 'xx0230', Dsus4: 'xx0233', Dmaj7: 'xx0222', E: '022100', E7: '020100', Em: '022000',
-    Em7: '022030', Emaj7: '021100', Esus4: '022200', F: '133211', Fmaj7: 'xx3210', G: '320003', G7: '320001',
-    G6: '320000', Gmaj7: '320002', A: 'x02220', A7: 'x02020', Am: 'x02210', Am7: 'x02010', Amaj7: 'x02120',
-    Asus2: 'x02200', Asus4: 'x02230', B7: 'x21202', Bm: 'x24432', B: 'x24442', 'F#': '244322', 'F#m': '244222',
-    'C#m': 'x46654', 'C#m7': 'x46454', 'G#m': '466444',
-  };
-  // movable shapes: [E-string root, A-string root] relative frets (null = muted)
-  const MOVABLE = {
-    '': [[0, 2, 2, 1, 0, 0], [null, 0, 2, 2, 2, 0]], m: [[0, 2, 2, 0, 0, 0], [null, 0, 2, 2, 1, 0]],
-    7: [[0, 2, 0, 1, 0, 0], [null, 0, 2, 0, 2, 0]], m7: [[0, 2, 0, 0, 0, 0], [null, 0, 2, 0, 1, 0]],
-    maj7: [[0, 2, 1, 1, 0, 0], [null, 0, 2, 1, 2, 0]], sus4: [[0, 2, 2, 2, 0, 0], [null, 0, 2, 2, 3, 0]],
-    sus2: [[0, 2, 4, 4, 0, 0], [null, 0, 2, 2, 0, 0]], 6: [[0, 2, 2, 1, 2, 0], [null, 0, 2, 2, 2, 2]],
-  };
-  const voicings = {};
-  function voicing(name) {
-    if (voicings[name]) return voicings[name];
+  const QUALITY = [
+    [/^(m|min)(?!aj)7/, [0, 3, 7, 10]], [/^(m|min)(?!aj)/, [0, 3, 7]], [/^maj7/, [0, 4, 7, 11]],
+    [/^7/, [0, 4, 7, 10]], [/^6/, [0, 4, 7, 9]], [/^sus2/, [0, 2, 7]], [/^sus/, [0, 5, 7]],
+    [/^add9/, [0, 4, 7, 14]], [/^dim/, [0, 3, 6]], [/^(aug|\+)/, [0, 4, 8]],
+  ];
+  function chordTones(name) {
     const m = String(name).replace(/\/.*$/, '').match(/^([A-G])([#b]?)(.*)$/);
     if (!m) return null;
     const root = (NOTE[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0) + 12) % 12;
-    let q = m[3];
-    let frets;
-    const key = Object.keys(SHAPES).find((k) => k === m[1] + m[2] + q);
-    if (key) frets = SHAPES[key].split('').map((c) => (c === 'x' ? null : +c));
-    else {
-      if (!MOVABLE[q]) q = /^m(?!aj)/.test(q) ? (/7/.test(q) ? 'm7' : 'm') : (/maj7/.test(q) ? 'maj7' : /7/.test(q) ? '7' : '');
-      const fe = (root - 4 + 12) % 12, fa = (root - 9 + 12) % 12;
-      const useE = fe <= fa;
-      const base = useE ? fe : fa;
-      frets = MOVABLE[q][useE ? 0 : 1].map((f) => (f == null ? null : f + base));
-    }
-    const notes = [];
-    frets.forEach((f, i) => { if (f != null) notes.push(OPEN[i] + f); });
-    return (voicings[name] = notes);
+    const q = QUALITY.find(([re]) => re.test(m[3]));
+    return { root, intervals: q ? q[1] : [0, 4, 7] };
   }
+  const isRest = (c) => !c || c === '-' || /^n\.?c\.?$/i.test(c);
 
-  const pluckCache = {};
-  function pluck(midi) {
-    if (pluckCache[midi]) return pluckCache[midi];
-    const sr = ctx.sampleRate, f = 440 * Math.pow(2, (midi - 69) / 12);
-    const len = Math.floor(sr * 2.6), N = Math.max(2, Math.round(sr / f - 0.5));
-    const buf = ctx.createBuffer(1, len, sr), d = buf.getChannelData(0);
-    let prev = 0;
-    for (let i = 0; i < N; i++) { prev = prev * 0.5 + (Math.random() * 2 - 1) * 0.5; d[i] = prev; }
-    const rho = 0.4985 + Math.min(0.0012, 18 / f * 0.0012);
-    for (let i = N; i < len; i++) d[i] = rho * (d[i - N] + d[i - N + 1]);
-    // loop period is N + 0.5 samples; correct the rounding with playback rate
-    return (pluckCache[midi] = { buf, rate: (N + 0.5) / (sr / f) });
+  let cueVoices = [];
+  function cueRelease(t) {
+    cueVoices.forEach(({ o, g }) => {
+      const p = g.gain;
+      if (p.cancelAndHoldAtTime) p.cancelAndHoldAtTime(t); else p.cancelScheduledValues(t);
+      p.setTargetAtTime(0.0001, t, 0.09);
+      try { o.stop(t + 0.8); } catch { /* already stopped */ }
+    });
+    cueVoices = [];
   }
-
-  const strings = []; // currently ringing voice per string slot
-  function stopString(i, t) {
-    const v = strings[i];
-    if (!v) return;
-    v.g.gain.cancelScheduledValues(t);
-    v.g.gain.setTargetAtTime(0.0001, t, 0.025);
-    try { v.src.stop(t + 0.3); } catch { /* already stopped */ }
-    strings[i] = null;
+  function cue(name, t) {
+    cueRelease(t);
+    const c = isRest(name) ? null : chordTones(name);
+    if (!c) return;
+    const hz = (midi) => 440 * Math.pow(2, (midi - 69) / 12);
+    const base = 48 + ((c.root + song.capo) % 12); // root in the C3–B3 range
+    const tone = filt('lowpass', 1600);
+    tone.connect(cueBus);
+    const voice = (midi, type, level) => {
+      const o = ctx.createOscillator();
+      o.type = type;
+      o.frequency.value = hz(midi);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(level, t + 0.05);
+      g.gain.setTargetAtTime(level * 0.45, t + 0.05, 0.7); // settle into a quiet hold
+      o.connect(g).connect(tone);
+      o.start(t);
+      cueVoices.push({ o, g });
+    };
+    voice(base, 'sine', 0.32);
+    voice(base, 'triangle', 0.1);
+    c.intervals.slice(1).forEach((iv) => voice(base + 12 + iv, 'sine', 0.06));
   }
-  function playString(i, midi, t, vel, muted) {
-    stopString(i, t);
-    const src = ctx.createBufferSource();
-    const pk = pluck(midi);
-    src.buffer = pk.buf;
-    src.playbackRate.value = pk.rate;
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(vel * 0.16, t);
-    if (muted) g.gain.setTargetAtTime(0.0001, t + 0.015, 0.02);
-    src.connect(g).connect(guitarBus);
-    src.start(t);
-    strings[i] = { src, g };
-  }
-  function strum(notes, t, ch, beatDur) {
-    if (!notes || !notes.length) return;
-    const up = ch === 'U' || ch === 'u';
-    const vel = ch === 'D' || ch === 'U' ? 1 : ch === 'x' ? 0.8 : 0.6;
-    const list = notes.map((n, i) => [n, i]);
-    const play = up ? list.slice(-4).reverse() : list;
-    const spread = Math.min(0.014, beatDur * 0.03);
-    play.forEach(([n, i], k) => playString(i, n + song.capo, t + k * spread, vel * (up ? 0.8 : 1), ch === 'x'));
-  }
-  function guitarEvent(chordName, ch, t, beatDur) {
-    if (ch === '.') { for (let i = 0; i < 6; i++) stopString(i, t); return; }
-    if (!chordName || chordName === '-' || /^n\.?c\.?$/i.test(chordName)) { for (let i = 0; i < 6; i++) stopString(i, t); return; }
-    const notes = voicing(chordName);
-    if (!notes) return;
-    if (/[1-6]/.test(ch)) {
-      const i = Math.min(notes.length, +ch) - 1;
-      playString(i, notes[i] + song.capo, t, 0.75);
-    } else strum(notes, t, ch, beatDur);
-  }
-  function guitarSilence(t) { if (ctx) for (let i = 0; i < 6; i++) stopString(i, t); }
+  function cueSilence(t) { if (ctx) cueRelease(t); }
 
   // Chord sounding at a fraction (0..1) through a bar.
   function chordAt(bar, frac) {
@@ -355,6 +309,7 @@
     P.bar = prefs.countIn ? -(song.beats <= 2 ? 2 : 1) : S.pos;
     P.step = 0;
     P.jump = null;
+    P.cueChord = undefined;
     P.queue = [];
     P.nextTime = ctx.currentTime + 0.1;
     P.playing = true;
@@ -367,7 +322,7 @@
 
   function stop(ended) {
     clearInterval(P.timer);
-    guitarSilence(ctx.currentTime);
+    cueSilence(ctx.currentTime);
     P.playing = false;
     P.queue = [];
     if (ended) S.pos = 0;
@@ -407,13 +362,14 @@
     const tl = song.timeline[bar];
     const p = pat(tl.pn);
     const i = tl.pb * p.steps + step;
-    if (prefs.guitar && tl.chords) {
-      const sd = stepDur(bar), L = tl.strum.length;
-      for (let g = Math.ceil(step * L / p.steps - 1e-9); g < (step + 1) * L / p.steps - 1e-9; g++) {
-        const ch = tl.strum[g];
-        if (!ch || ch === '-') continue;
-        const at = t + (g * p.steps / L - step) * sd;
-        guitarEvent(chordAt(bar, g / L), ch, at, sd * p.steps / song.beats);
+    if (prefs.cue && song.hasChords) {
+      // sound a cue where the chord changes (and at the top of each section), on the exact step
+      const n = tl.chords ? tl.chords.length : 1;
+      for (let j = Math.ceil(step * n / p.steps - 1e-9); j < (step + 1) * n / p.steps - 1e-9; j++) {
+        const name = tl.chords ? tl.chords[j] : 'N.C.';
+        if (name === P.cueChord && !(tl.b === 0 && j === 0)) continue;
+        P.cueChord = name;
+        cue(name, t + (j * p.steps / n - step) * stepDur(bar));
       }
     }
     for (const k in p.tracks) {
@@ -813,15 +769,17 @@
       const b = P.playing ? D.bar : S.pos;
       if (b >= 0) toast(S.loop ? `Looping ${song.sections[song.timeline[b].si].name}` : 'Loop off');
     };
-    const guitarBtn = $('#guitarBtn');
-    setToggle(guitarBtn, prefs.guitar);
-    guitarBtn.onclick = () => {
-      prefs.guitar = !prefs.guitar; setToggle(guitarBtn, prefs.guitar); savePrefs();
-      if (!prefs.guitar && P.playing) guitarSilence(ctx.currentTime);
-      toast(prefs.guitar ? 'Guitar on' : 'Guitar off');
+    const cueBtn = $('#cueBtn');
+    setToggle(cueBtn, prefs.cue);
+    cueBtn.onclick = () => {
+      prefs.cue = !prefs.cue; setToggle(cueBtn, prefs.cue); savePrefs();
+      if (P.playing) {
+        if (prefs.cue) { P.cueChord = chordAt(D.bar, 0); cue(P.cueChord, ctx.currentTime + 0.02); } else cueSilence(ctx.currentTime);
+      }
+      toast(prefs.cue ? 'Chord cue on' : 'Chord cue off');
     };
-    $('#guitarVol').value = prefs.guitarVol;
-    $('#guitarVol').oninput = (e) => { prefs.guitarVol = +e.target.value; applyVolumes(); savePrefs(); };
+    $('#cueVol').value = prefs.cueVol;
+    $('#cueVol').oninput = (e) => { prefs.cueVol = +e.target.value; applyVolumes(); savePrefs(); };
     mixBtn.onclick = () => { const m = $('#mixer'); m.hidden = !m.hidden; setToggle(mixBtn, !m.hidden); };
     $('#drumVol').value = prefs.drumVol;
     $('#clickVol').value = prefs.clickVol;

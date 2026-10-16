@@ -12,17 +12,14 @@
  *   patterns  { name: { steps?, KEY: 'x-x-...' } }  — one string per drum.
  *             A string longer than `steps` spans several bars (e.g. 32 chars = 2 bars of 16ths).
  *             Spaces and '|' are ignored, so you can write 'x-x- x-x- | x-x- x-x-'.
- *   sections  [{ name, bars, pattern, first?, fill?, bpm?, chords?, strum? }] — the song's arrangement in order.
+ *   sections  [{ name, bars, pattern, first?, fill?, bpm?, chords? }] — the song's arrangement in order.
  *             `first` replaces the first bar (e.g. a crash bar), `fill` replaces the last bar.
  *   lyrics    optional text. Headers in [brackets] are matched to section names.
  *             A header like [Chorus] also matches "Chorus 2", so a chorus can be written once.
- *   capo      guitar capo fret; chords are written as the shapes you'd play with it.
- *   strum     guitar pattern for one bar (song default, or per section). Its length sets the
- *             subdivision: 8 chars = 8th notes, 16 = 16ths, 12 = triplets.
- *             D/U strong down/up strum · d/u soft · x muted chuck · . stop · - let ring
- *             1-6 pick one string of the chord (1 = lowest played string) for fingerpicking.
+ *   capo      capo fret; chords are written as the shapes you'd play with it (the cue sounds at pitch).
  *   (section) chords: bars split by '|', chords in a bar share it evenly ('Am G | C' = 2 beats each,
- *             then a full bar of C). Cycles if shorter than the section. 'N.C.' = guitar rests.
+ *             then a full bar of C). Cycles if shorter than the section. 'N.C.' = no chord.
+ *             A soft chord cue sounds on each change; the chord is shown on screen.
  *   (section) bpm: own tempo for that part (scales with the tempo you set).
  *   (section) inst: true marks a part with no singing, so pasted lyrics skip it.
  *
@@ -37,7 +34,6 @@ SONGS.push({
   title: 'Rock Groove (demo)',
   artist: 'Backbeat',
   bpm: 96,
-  strum: 'D-D-DUDU',
   timeSig: '4/4',
   beats: 4,
   steps: 16,
@@ -86,7 +82,7 @@ SONGS.push({
     { name: 'Chorus',   bars: 8, pattern: 'chorus', first: 'chorusIn', fill: 'fill', chords: 'A | E | B | C#m' },
     { name: 'Verse 2',  bars: 8, pattern: 'verse', first: 'crash', fill: 'fill', chords: 'E | B | C#m | A' },
     { name: 'Chorus 2', bars: 8, pattern: 'chorus', first: 'chorusIn', fill: 'fill', chords: 'A | E | B | C#m' },
-    { name: 'Outro', inst: true, bars: 1, pattern: 'ending', chords: 'E', strum: 'D-------' },
+    { name: 'Outro', inst: true, bars: 1, pattern: 'ending', chords: 'E' },
   ],
   lyrics: `[Intro]
 (hi-hat and kick)
@@ -118,7 +114,6 @@ SONGS.push({
   title: 'When the Saints Go Marching In',
   artist: 'Traditional',
   bpm: 112,
-  strum: 'D-uD-uD-uD-u',
   timeSig: '4/4 shuffle',
   beats: 4,
   steps: 12,
@@ -159,7 +154,7 @@ SONGS.push({
     { name: 'Verse 1', bars: 8, pattern: 'shuffle', first: 'shuffleCrash', fill: 'fill', chords: 'C | C | C | G | C | F | C G | C' },
     { name: 'Verse 2', bars: 8, pattern: 'shuffle', first: 'shuffleCrash', fill: 'fill', chords: 'C | C | C | G | C | F | C G | C' },
     { name: 'Verse 3', bars: 8, pattern: 'rideShuffle', first: 'shuffleCrash', fill: 'fill', chords: 'C | C | C | G | C | F | C G | C' },
-    { name: 'Outro', inst: true, bars: 1, pattern: 'end', chords: 'C', strum: 'D-----------' },
+    { name: 'Outro', inst: true, bars: 1, pattern: 'end', chords: 'C' },
   ],
   lyrics: `[Intro]
 (cross-stick shuffle)
@@ -191,7 +186,6 @@ SONGS.push({
   title: '6/8 Ballad (demo)',
   artist: 'Backbeat',
   bpm: 60,
-  strum: '134543',
   timeSig: '6/8',
   beats: 2,
   steps: 6,
@@ -239,7 +233,6 @@ SONGS.push({
   artist: 'Toploader',
   bpm: 120,
   capo: 1,
-  strum: 'D-DU-UDU',
   timeSig: '4/4',
   beats: 4,
   steps: 16,
@@ -302,7 +295,7 @@ SONGS.push({
     { name: 'Verse 3',      bars: 8, pattern: 'verse', first: 'verseIn', fill: 'fill', chords: 'Am7 Am7 D D | G G F# Em' },
     { name: 'Verse 4',      bars: 8, pattern: 'verse', first: 'verseIn', fill: 'fill', chords: 'Am7 Am7 D D | G G F# Em' },
     { name: 'Chorus 2',     bars: 8, pattern: 'chorus', first: 'chorusIn', fill: 'fill', chords: 'Am7 Am7 D D | G G F# Em' },
-    { name: 'Breakdown',    bars: 8, pattern: 'breakdown', fill: 'pickup', chords: 'Am7 Am7 D D | G G F# Em', strum: 'd-d-d-d-' },
+    { name: 'Breakdown',    bars: 8, pattern: 'breakdown', fill: 'pickup', chords: 'Am7 Am7 D D | G G F# Em' },
     { name: 'Chorus 3',     bars: 8, pattern: 'chorus', first: 'chorusIn', fill: 'fill', chords: 'Am7 Am7 D D | G G F# Em' },
     { name: 'Chorus 4',     bars: 8, pattern: 'chorus', first: 'chorusIn', fill: 'fill', chords: 'Am7 Am7 D D | G G F# Em' },
     { name: 'Outro',        bars: 4, pattern: 'chorus', first: 'chorusIn', fill: 'ending', chords: 'Am7 Am7 D D | G G F# Em | Am7 Am7 D D | G' },
@@ -349,7 +342,6 @@ SONGS.push({
   artist: 'Vance Joy',
   bpm: 100,
   capo: 1,
-  strum: 'D-DU-UDU',
   timeSig: '4/4',
   beats: 4,
   steps: 16,
@@ -428,9 +420,9 @@ SONGS.push({
     { name: 'Pre-Chorus 2', bars: 4, pattern: 'pre', fill: 'preFill', chords: 'Am G | C' },
     { name: 'Chorus 2',   bars: 12, pattern: 'chorus', first: 'chorusIn', fill: 'fill', chords: 'Am G | C' },
     { name: 'Bridge',     bars: 8,  pattern: 'bridge', fill: 'bridgeFill', chords: 'Am G | C Fmaj7' },
-    { name: 'Breakdown',  bars: 4,  pattern: 'stop', fill: 'stopFill', chords: 'Am G | C', strum: 'D-------' },
+    { name: 'Breakdown',  bars: 4,  pattern: 'stop', fill: 'stopFill', chords: 'Am G | C' },
     { name: 'Chorus 3',   bars: 12, pattern: 'chorus', first: 'chorusIn', fill: 'fill', chords: 'Am G | C' },
-    { name: 'Outro', inst: true, bars: 4, pattern: 'kick', fill: 'ending', chords: 'Am G | C | Am G | C', strum: 'D-------' },
+    { name: 'Outro', inst: true, bars: 4, pattern: 'kick', fill: 'ending', chords: 'Am G | C | Am G | C' },
   ],
   lyrics: `[Intro]
 (ukulele only — drums tacet)
@@ -479,7 +471,6 @@ SONGS.push({
     title: 'Under the Bridge',
     artist: 'Red Hot Chili Peppers',
     bpm: 84,
-    strum: '1-3-4-5-6-5-4-3-',
     timeSig: '4/4',
     beats: 4,
     steps: 16,
@@ -542,14 +533,14 @@ SONGS.push({
       { name: 'Intro', inst: true,       bars: 8,  pattern: 'tacet', chords: 'D | F#' },
       { name: 'Verse 1',                 bars: 16, pattern: 'verse1', chords: 'E B C#m7 C#m7 | G#m G#m A A | E B C#m C#m | A A A A | E B C#m C#m | G#m G#m A A | E B C#m C#m | A A Emaj7 Emaj7' },
       { name: 'Drum Break', inst: true,  bars: 2,  pattern: 'drumBreak', chords: 'N.C.' },
-      { name: 'Chorus',                  bars: 8,  pattern: 'chorus', chords: 'F#m F#m E E | B B B B', strum: 'D-D-DUDU' },
+      { name: 'Chorus',                  bars: 8,  pattern: 'chorus', chords: 'F#m F#m E E | B B B B' },
       { name: 'Interlude', inst: true,   bars: 2,  pattern: 'groove1', chords: 'D | F#' },
       { name: 'Verse 2',                 bars: 8,  pattern: 'verse2', chords: 'E B C#m7 C#m7 | G#m G#m A A | E B C#m C#m | A A A A | E B C#m C#m | G#m G#m A A | E B C#m C#m | A A Emaj7 Emaj7' },
       { name: 'Drum Break 2', inst: true, bars: 2, pattern: 'drumBreak', chords: 'N.C.' },
-      { name: 'Chorus 2',                bars: 8,  pattern: 'chorus', chords: 'F#m F#m E E | B B B B', strum: 'D-D-DUDU' },
-      { name: 'Chorus Tag',              bars: 4,  pattern: 'chorus', fill: 'bigFill', chords: 'F#m F#m E E | B B B B', strum: 'D-D-DUDU' },
-      { name: 'Bridge',                  bars: 16, pattern: 'outro', first: 'outroIn', fill: 'outroFill', bpm: 88, chords: 'A A Am Am | G6 G6 Fmaj7 Fmaj7', strum: 'D-D-DUDU' },
-      { name: 'Outro',                   bars: 8,  pattern: 'outro', first: 'outroIn', fill: 'ending', bpm: 88, chords: 'A A Am Am | G6 G6 Fmaj7 Fmaj7 | A', strum: 'D-D-DUDU' },
+      { name: 'Chorus 2',                bars: 8,  pattern: 'chorus', chords: 'F#m F#m E E | B B B B' },
+      { name: 'Chorus Tag',              bars: 4,  pattern: 'chorus', fill: 'bigFill', chords: 'F#m F#m E E | B B B B' },
+      { name: 'Bridge',                  bars: 16, pattern: 'outro', first: 'outroIn', fill: 'outroFill', bpm: 88, chords: 'A A Am Am | G6 G6 Fmaj7 Fmaj7' },
+      { name: 'Outro',                   bars: 8,  pattern: 'outro', first: 'outroIn', fill: 'ending', bpm: 88, chords: 'A A Am Am | G6 G6 Fmaj7 Fmaj7 | A' },
     ],
     lyrics: `[Intro]
 (guitar intro — no drums)
