@@ -50,37 +50,40 @@
       <!-- song structure strip -->
       <div id="sections" class="sections" role="list"></div>
 
-      <div class="pos-row">
-        <div class="pos-left">
-          <button class="step-btn" id="barPrev" aria-label="Previous bar">‹</button>
-          <div id="posLabel" class="pos-label"></div>
-          <button class="step-btn" id="barNext" aria-label="Next bar">›</button>
+      <!-- NOW: where you are + the chord to play (pinned with the tabs) -->
+      <div class="pinned">
+      <div class="now" id="nowCard">
+        <div class="now-chord" id="nowChord" hidden>
+          <div class="now-name" id="chordNow">–</div>
+          <div class="diagram big" id="diagNow"></div>
         </div>
-        <div id="beatDots" class="beat-dots"></div>
-      </div>
-
-      <!-- chords + chord cue -->
-      <div class="chord-row" id="chordRow" hidden>
-        <div class="chord-box"><span class="chord-now" id="chordNow">–</span><span class="chord-next" id="chordNext"></span></div>
-        <span class="capo" id="capoLabel"></span>
-        <button class="chip" id="cueBtn" aria-pressed="true">🎵 Cue</button>
-      </div>
-
-      <!-- drum grid -->
-      <div class="panel grid-panel" id="gridPanel">
-        <div class="panel-head">
-          <span>Drums <small id="patName"></small></span>
-          <span class="panel-actions">
-            <button class="chip small" id="editBtn" aria-pressed="false">Edit</button>
-            <button class="chip small" id="gridToggle" aria-pressed="true">Hide</button>
-          </span>
+        <div class="now-side">
+          <div class="pos-left">
+            <button class="step-btn" id="barPrev" aria-label="Previous bar">‹</button>
+            <div id="posLabel" class="pos-label"></div>
+            <button class="step-btn" id="barNext" aria-label="Next bar">›</button>
+          </div>
+          <div id="beatDots" class="beat-dots"></div>
+          <div class="next" id="nextBox" hidden>
+            <div class="diagram small" id="diagNext"></div>
+            <div><small>Next</small><b id="chordNext">–</b></div>
+          </div>
+          <div class="now-chips" id="nowChips" hidden>
+            <span class="capo" id="capoLabel"></span>
+            <button class="chip small" id="cueBtn" aria-pressed="true">🎵 Cue</button>
+          </div>
         </div>
-        <div id="grid" class="grid"></div>
-        <div class="legend"><span><i class="c v3"></i>Accent</span><span><i class="c v2"></i>Hit</span><span><i class="c v1"></i>Ghost</span><span><i class="c vo"></i>Open hat</span><span class="hint">Tap a drum name to mute it</span></div>
       </div>
 
-      <!-- lyrics -->
-      <div class="panel lyrics-panel">
+      <!-- views -->
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" data-tab="lyrics">Lyrics</button>
+        <button class="tab" role="tab" data-tab="chords" id="chordsTab">Chords</button>
+        <button class="tab" role="tab" data-tab="drums">Drums</button>
+      </div>
+      </div>
+
+      <div class="tabpanel" data-panel="lyrics">
         <div class="panel-head">
           <span>Lyrics</span>
           <span class="panel-actions">
@@ -90,6 +93,22 @@
           </span>
         </div>
         <div id="lyrics" class="lyrics"></div>
+      </div>
+
+      <div class="tabpanel" data-panel="chords">
+        <div class="panel-head"><span>Shapes in this song <small id="shapesCapo"></small></span></div>
+        <div class="shapes" id="shapes"></div>
+        <div class="panel-head"><span>Chart <small>· tap a bar to go there</small></span></div>
+        <div class="chart" id="chart"></div>
+      </div>
+
+      <div class="tabpanel" data-panel="drums">
+        <div class="panel-head">
+          <span>Drums <small id="patName"></small></span>
+          <span class="panel-actions"><button class="chip small" id="editBtn" aria-pressed="false">Edit</button></span>
+        </div>
+        <div id="grid" class="grid"></div>
+        <div class="legend"><span><i class="c v3"></i>Accent</span><span><i class="c v2"></i>Hit</span><span><i class="c v1"></i>Ghost</span><span><i class="c vo"></i>Open hat</span><span class="hint">Tap a drum name to mute it</span></div>
       </div>
     </div>
 

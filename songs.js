@@ -540,7 +540,7 @@ SONGS.push({
       { name: 'Chorus 2',                bars: 8,  pattern: 'chorus', chords: 'F#m F#m E E | B B B B' },
       { name: 'Chorus Tag',              bars: 4,  pattern: 'chorus', fill: 'bigFill', chords: 'F#m F#m E E | B B B B' },
       { name: 'Bridge',                  bars: 16, pattern: 'outro', first: 'outroIn', fill: 'outroFill', bpm: 88, chords: 'A A Am Am | G6 G6 Fmaj7 Fmaj7' },
-      { name: 'Outro',                   bars: 8,  pattern: 'outro', first: 'outroIn', fill: 'ending', bpm: 88, chords: 'A A Am Am | G6 G6 Fmaj7 Fmaj7 | A' },
+      { name: 'Outro',                   bars: 8,  pattern: 'outro', first: 'outroIn', fill: 'ending', bpm: 88, chords: 'A A Am Am | G6 G6 Fmaj7 Fmaj7 | A A Am Am | G6 G6 Fmaj7 Fmaj7 | A A Am Am | G6 G6 Fmaj7 Fmaj7 | A | A' },
     ],
     lyrics: `[Intro]
 (guitar intro — no drums)
@@ -571,3 +571,83 @@ SONGS.push({
 (last chord)`,
   });
 })();
+
+/* ------------------------------------------------------------------
+ * She's Always a Woman — Billy Joel (1977)
+ * A 3/4 waltz led by piano. The record has no real drum-kit groove, so this
+ * is a light suggested pulse (kick on 1, hi-hat foot on 2 & 3; ride in the
+ * choruses) to keep time. Mute any drum by tapping its name.
+ * Chords: D shapes with capo 1 (sounds in E-flat, the original key).
+ * Lyrics are not bundled (copyright) — paste them via Lyrics → Edit → Paste.
+ * ------------------------------------------------------------------ */
+SONGS.push({
+  id: 'shes-always-a-woman',
+  title: "She's Always a Woman",
+  artist: 'Billy Joel',
+  bpm: 118,
+  capo: 1,
+  timeSig: '3/4',
+  beats: 3,
+  steps: 6,
+  patterns: {
+    intro: {
+      HP: '--x-x-',
+    },
+    waltz: {
+      HP: '--x-x-',
+      BD: 'x-----',
+    },
+    chorus: {
+      RD: 'x-x-x-',
+      HP: '--x-x-',
+      BD: 'x-----',
+    },
+    chorusIn: {
+      CR: 'x-----',
+      RD: '--x-x-',
+      HP: '--x-x-',
+      BD: 'x-----',
+    },
+    lift: {
+      RD: 'x-x---',
+      SN: '----gx',
+      BD: 'x-----',
+    },
+    ending: {
+      RD: 'o-----',
+      BD: 'x-----',
+    },
+  },
+  sections: [
+    { name: 'Intro', inst: true, bars: 4, pattern: 'intro', chords: 'D D4/A D | A | D G/D D | D' },
+    { name: 'Verse 1', bars: 16, pattern: 'waltz', chords: 'A | D | A | D | G | Gmaj7 | G6 | Gmaj7 | A7 | D | A7 | F# | Bm | Bm/A | G6 A7 A7 | D D4/A D' },
+    { name: 'Verse 2', bars: 16, pattern: 'waltz', fill: 'lift', chords: 'A | D | A | D Dsus2 Dsus2 | G | Gmaj7 | G6 | Gmaj7 | A7 | D | A7 | F# F# F#7/E | Bm | Bm/A | G6 A7 A7 | D D4/A D/C#' },
+    { name: 'Chorus', bars: 22, pattern: 'chorus', first: 'chorusIn', fill: 'lift', chords: 'Bm | Bm/A | E7/G# | E7 | A A/G# A/G# | F#m | D | G G/F# G/F# | Em | A7 | D D4/A D | Dm | Dm/C | G7/B | G7 | C C/B C/B | Am | F6 | Bb Bb/A Bb/A | Abdim7 | E7 | A A6 A7' },
+    { name: 'Verse 3', bars: 16, pattern: 'waltz', chords: 'A | D | A | D | G | Gmaj7 | G6 | Gmaj7 | A7 | D | A7 | F# F# F#7/E | Bm | Bm/A | G6 A7 A7 | D D4/A D' },
+    { name: 'Instrumental', inst: true, bars: 12, pattern: 'chorus', first: 'chorusIn', fill: 'lift', chords: 'D | A7 | D | A | F# | F#7/E | Bm | Bm/A | G6 | A | D D4/A D | D/C#' },
+    { name: 'Chorus 2', bars: 22, pattern: 'chorus', first: 'chorusIn', fill: 'lift', chords: 'Bm | Bm/A | E7/G# | E7 | A A/G# A/G# | F#m | D | G G/F# G/F# | Em | A7 | D D4/A D | Dm | Dm/C | G7/B | G7 | C C/B C/B | Am | F6 | Bb Bb/A Bb/A | Abdim7 | E7 | A A6 A7' },
+    { name: 'Verse 4', bars: 19, pattern: 'waltz', chords: 'A | D | A | D | G | Gmaj7 | G6 | Gmaj7 | A7 | D | A7 | F# F# F#7/E | Bm | Bm/A | G | D/F# | Em | A7 | D D4/A D' },
+    { name: 'Outro', inst: true, bars: 12, pattern: 'waltz', fill: 'ending', chords: 'D | A7 | D | A | F# | F#7/E | Bm | Bm/A | G6 | A7 | D D4/A D | D' },
+  ],
+  lyrics: `[Intro]
+(piano)
+(Tap Lyrics → Edit to paste the full lyrics under these headers.)
+
+[Verse 1]
+("She can kill with a smile…")
+
+[Verse 2]
+
+[Chorus]
+("Oh, she takes care of herself…" — key change midway)
+
+[Verse 3]
+
+[Instrumental]
+(piano solo)
+
+[Verse 4]
+
+[Outro]
+(piano)`,
+});

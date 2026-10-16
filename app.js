@@ -18,7 +18,7 @@
     del(k) { try { localStorage.removeItem(k); } catch { /* ignore */ } },
   };
   const prefs = Object.assign(
-    { click: true, countIn: true, cue: true, drumVol: 0.9, clickVol: 0.55, cueVol: 0.6, lyricSize: 19, showGrid: true },
+    { click: true, countIn: true, cue: true, drumVol: 0.9, clickVol: 0.55, cueVol: 0.6, lyricSize: 19, tab: 'lyrics' },
     store.get('bb.prefs', {}),
   );
   const savePrefs = () => store.set('bb.prefs', prefs);
@@ -63,7 +63,7 @@
         const chords = cb ? cb[b % cb.length].trim().split(/\s+/).filter(Boolean) : null;
         timeline.push({ si, b, pn, pb, chords: chords && chords.length ? chords : null });
       }
-      return { name: s.name, bars: s.bars, inst: !!s.inst, rate: s.bpm ? s.bpm / raw.bpm : 1, start, end: timeline.length - 1, color: secColor(s.name) };
+      return { name: s.name, bars: s.bars, chords: s.chords || '', inst: !!s.inst, rate: s.bpm ? s.bpm / raw.bpm : 1, start, end: timeline.length - 1, color: secColor(s.name) };
     });
     const used = new Set();
     Object.values(patterns).forEach((p) => Object.keys(p.tracks).forEach((k) => used.add(k)));
@@ -219,7 +219,7 @@
   const QUALITY = [
     [/^(m|min)(?!aj)7/, [0, 3, 7, 10]], [/^(m|min)(?!aj)/, [0, 3, 7]], [/^maj7/, [0, 4, 7, 11]],
     [/^7/, [0, 4, 7, 10]], [/^6/, [0, 4, 7, 9]], [/^sus2/, [0, 2, 7]], [/^sus/, [0, 5, 7]],
-    [/^add9/, [0, 4, 7, 14]], [/^dim/, [0, 3, 6]], [/^(aug|\+)/, [0, 4, 8]],
+    [/^add9/, [0, 4, 7, 14]], [/^4/, [0, 5, 7]], [/^dim7/, [0, 3, 6, 9]], [/^dim/, [0, 3, 6]], [/^(aug|\+)/, [0, 4, 8]],
   ];
   function chordTones(name) {
     const m = String(name).replace(/\/.*$/, '').match(/^([A-G])([#b]?)(.*)$/);
@@ -266,6 +266,82 @@
   }
   function cueSilence(t) { if (ctx) cueRelease(t); }
 
+  /* ---------------- chord shapes (guitar diagrams) ---------------- */
+  // Frets from low E to high e; x = muted. Shapes are as played (relative to the capo).
+  const SHAPES = {
+    C: 'x32010', C7: 'x32310', Cmaj7: 'x32000', Cadd9: 'x32030', D: 'xx0232', D7: 'xx0212', Dm: 'xx0231',
+    Dm7: 'xx0211', Dsus2: 'xx0230', Dsus4: 'xx0233', Dmaj7: 'xx0222', E: '022100', E7: '020100', Em: '022000',
+    Em7: '022030', Emaj7: '021100', Esus4: '022200', F: '133211', Fmaj7: 'xx3210', F6: 'xx3231', G: '320003',
+    G7: '320001', G6: '320000', Gmaj7: '320002', A: 'x02220', A7: 'x02020', A6: 'x02222', Am: 'x02210',
+    Am7: 'x02010', Amaj7: 'x02120', Asus2: 'x02200', Asus4: 'x02230', B7: 'x21202', Bm: 'x24432', B: 'x24442',
+    Bb: 'x13331', 'F#': '244322', 'F#m': '244222', 'C#m': 'x46654', 'C#m7': 'x46454', 'G#m': '466444',
+    Abdim7: 'xx0101',
+    // slash chords / inversions
+    'D4/A': 'x00233', 'G/D': 'xx0433', 'Bm/A': 'x04432', 'F#7/E': '0x4320', 'D/C#': 'x4x232', 'E7/G#': '4x0100',
+    'A/G#': '4x2220', 'G/F#': '2x0003', 'Dm/C': 'x3x231', 'G7/B': 'x2x001', 'C/B': 'x2x010', 'Bb/A': 'x0333x',
+    'D/F#': '2x0232', 'C/G': '332010', 'G/B': 'x20003', 'Am/G': '3x2210', 'D/A': 'x00232',
+  };
+  // movable fallbacks: [root on low E, root on A], relative frets
+  const MOVABLE = {
+    '': [[0, 2, 2, 1, 0, 0], [null, 0, 2, 2, 2, 0]], m: [[0, 2, 2, 0, 0, 0], [null, 0, 2, 2, 1, 0]],
+    7: [[0, 2, 0, 1, 0, 0], [null, 0, 2, 0, 2, 0]], m7: [[0, 2, 0, 0, 0, 0], [null, 0, 2, 0, 1, 0]],
+    maj7: [[0, 2, 1, 1, 0, 0], [null, 0, 2, 1, 2, 0]], sus4: [[0, 2, 2, 2, 0, 0], [null, 0, 2, 2, 3, 0]],
+    sus2: [[0, 2, 4, 4, 0, 0], [null, 0, 2, 2, 0, 0]], 6: [[0, 2, 2, 1, 2, 0], [null, 0, 2, 2, 2, 2]],
+  };
+  const shapeCache = {};
+  function shapeFor(name) {
+    if (name in shapeCache) return shapeCache[name];
+    const parse = (str) => str.split('').map((c) => (c === 'x' ? null : +c));
+    let frets = null;
+    if (SHAPES[name]) frets = parse(SHAPES[name]);
+    else {
+      const bare = String(name).replace(/\/.*$/, '');
+      if (SHAPES[bare]) frets = parse(SHAPES[bare]);
+      else {
+        const m = bare.match(/^([A-G])([#b]?)(.*)$/);
+        if (m) {
+          const root = (NOTE[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0) + 12) % 12;
+          let q = m[3];
+          if (!MOVABLE[q]) q = /^m(?!aj)/.test(q) ? (/7/.test(q) ? 'm7' : 'm') : /maj7/.test(q) ? 'maj7' : /7/.test(q) ? '7' : /sus|^4/.test(q) ? 'sus4' : '';
+          const fe = (root - 4 + 12) % 12, fa = (root - 9 + 12) % 12;
+          const useE = fe <= fa;
+          frets = MOVABLE[q][useE ? 0 : 1].map((f) => (f == null ? null : f + (useE ? fe : fa)));
+        }
+      }
+    }
+    return (shapeCache[name] = frets);
+  }
+
+  function chordSVG(name) {
+    const frets = isRest(name) ? null : shapeFor(name);
+    if (!frets) return `<svg viewBox="0 0 60 74"><text class="cd-none" x="30" y="42" text-anchor="middle">${isRest(name) ? 'no chord' : '?'}</text></svg>`;
+    const L = 12, ss = 8.4, T = 16, fs = 11.4;
+    const played = frets.filter((f) => f != null && f > 0);
+    const max = played.length ? Math.max(...played) : 0;
+    const base = max <= 4 ? 1 : Math.min(...played);
+    const x = (i) => L + i * ss;
+    let out = '';
+    for (let i = 0; i < 6; i++) out += `<line class="cd-grid" x1="${x(i)}" y1="${T}" x2="${x(i)}" y2="${T + 5 * fs}"/>`;
+    for (let r = 0; r <= 5; r++) out += `<line class="cd-grid" x1="${L}" y1="${T + r * fs}" x2="${x(5)}" y2="${T + r * fs}"/>`;
+    if (base === 1) out += `<line class="cd-nut" x1="${L}" y1="${T}" x2="${x(5)}" y2="${T}"/>`;
+    else out += `<text class="cd-fr" x="${L - 3}" y="${T + fs * 0.5 + 3}" text-anchor="end">${base}</text>`;
+    // barre: lowest fret held on the first played string and the top string
+    const first = frets.findIndex((f) => f != null);
+    const mf = played.length ? Math.min(...played) : 0;
+    const on = frets.map((f, i) => (f === mf ? i : -1)).filter((i) => i >= 0);
+    const solid = frets.slice(first).every((f) => f != null && f >= mf);
+    if (mf && solid && on.length >= 2 && frets[first] === mf && frets[5] === mf) {
+      const cy = T + (mf - base + 0.5) * fs;
+      out += `<rect class="cd-dot" x="${x(first) - 3.6}" y="${cy - 3.6}" width="${x(5) - x(first) + 7.2}" height="7.2" rx="3.6"/>`;
+    }
+    frets.forEach((f, i) => {
+      if (f == null) out += `<path class="cd-x" d="M${x(i) - 2.6} ${T - 9.6}l5.2 5.2m0 -5.2l-5.2 5.2"/>`;
+      else if (f === 0) out += `<circle class="cd-mark" cx="${x(i)}" cy="${T - 7}" r="2.6"/>`;
+      else out += `<circle class="cd-dot" cx="${x(i)}" cy="${T + (f - base + 0.5) * fs}" r="3.6"/>`;
+    });
+    return `<svg viewBox="0 0 60 ${T + 5 * fs + 3}" role="img" aria-label="${esc(name)} chord shape">${out}</svg>`;
+  }
+
   // Chord sounding at a fraction (0..1) through a bar.
   function chordAt(bar, frac) {
     const c = bar >= 0 && song.timeline[bar] && song.timeline[bar].chords;
@@ -288,7 +364,7 @@
   let song = null;
   const S = { bpm: 120, pos: 0, loop: false, muted: new Set(), edit: false };
   const P = { playing: false, bar: 0, step: 0, nextTime: 0, timer: null, queue: [], startBar: 0, jump: null };
-  const D = { bar: -99, step: -1, grid: null, gridSteps: 0, lyricSec: -1, lyricLine: -1 };
+  const D = { bar: -99, step: -1, grid: null, gridSteps: 0, lyricSec: -1, lyricLine: -1, chartBars: [] };
 
   const pat = (name) => song.patterns[name];
   const barSteps = (bar) => (bar < 0 ? song.beats : pat(song.timeline[bar].pn).steps);
@@ -431,13 +507,70 @@
     updateLyrics(tl.si, prog);
     if (song.hasChords) {
       const frac = Math.max(step, 0) / p.steps;
-      const c = chordAt(bar, frac) || '–', n = nextChordAfter(bar, frac);
-      if (c !== D.chord || n !== D.next) {
-        D.chord = c; D.next = n;
-        $('#chordNow').textContent = c;
-        $('#chordNext').textContent = n ? `then ${n}` : '';
+      const c = chordAt(bar, frac) || 'N.C.', n = nextChordAfter(bar, frac);
+      if (c !== D.chord) {
+        D.chord = c;
+        $('#chordNow').textContent = isRest(c) ? '—' : c;
+        $('#diagNow').innerHTML = chordSVG(c);
+        $$('#shapes .shape').forEach((el) => el.classList.toggle('on', el.dataset.chord === c));
+      }
+      if (n !== D.next) {
+        D.next = n;
+        $('#nextBox').hidden = !n;
+        if (n) { $('#chordNext').textContent = n; $('#diagNext').innerHTML = chordSVG(n); }
+      }
+      if (barChanged) {
+        D.chartBars.forEach((el, i) => el.classList.toggle('on', i === bar));
+        const el = D.chartBars[bar];
+        if (el && prefs.tab === 'chords' && D.bar >= 0) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       }
     }
+  }
+
+  /* ---------------- chords tab ---------------- */
+  const collapse = (list) => list.filter((c, i) => i === 0 || c !== list[i - 1]);
+  function renderChordsTab() {
+    D.chartBars = [];
+    const seen = [];
+    song.timeline.forEach((tl) => (tl.chords || []).forEach((c) => { if (!isRest(c) && !seen.includes(c)) seen.push(c); }));
+    $('#shapesCapo').textContent = song.capo ? `· capo ${song.capo}` : '';
+    $('#shapes').innerHTML = seen.map((c) => `<div class="shape" data-chord="${esc(c)}"><b>${esc(c)}</b><div class="diagram">${chordSVG(c)}</div></div>`).join('');
+    const chart = $('#chart');
+    chart.innerHTML = '';
+    song.sections.forEach((sec) => {
+      const box = document.createElement('div');
+      box.className = 'chart-sec';
+      box.innerHTML = `<h4><i style="background:${sec.color}"></i>${esc(sec.name)} <small>· ${sec.bars} bars${sec.rate !== 1 ? ` · ${Math.round(song.bpm * sec.rate)} bpm` : ''}</small></h4>`;
+      const bars = document.createElement('div');
+      bars.className = 'bars';
+      for (let b = sec.start; b <= sec.end; b++) {
+        const tl = song.timeline[b];
+        const el = document.createElement('button');
+        el.className = 'bar';
+        const list = tl.chords ? collapse(tl.chords) : ['N.C.'];
+        el.innerHTML = list.map((c) => (isRest(c) ? '<span class="rest">—</span>' : `<span>${esc(c)}</span>`)).join('');
+        el.onclick = () => jumpToBar(b);
+        bars.appendChild(el);
+        D.chartBars[b] = el;
+      }
+      box.appendChild(bars);
+      chart.appendChild(box);
+    });
+  }
+
+  // compact progression for a section header, e.g. "A D A D G Gmaj7 …"
+  function sectionChords(sec) {
+    if (!sec.chords) return '';
+    const list = collapse(sec.chords.split(/[\s|]+/).filter(Boolean)).filter((c) => !isRest(c));
+    return list.join(' ');
+  }
+
+  /* ---------------- tabs ---------------- */
+  function setTab(name) {
+    if (name === 'chords' && !song.hasChords) name = 'lyrics';
+    prefs.tab = name; savePrefs();
+    $$('.tab').forEach((t) => t.classList.toggle('on', t.dataset.tab === name));
+    $$('.tabpanel').forEach((p) => p.classList.toggle('on', p.dataset.panel === name));
   }
 
   function renderSections() {
@@ -455,13 +588,14 @@
     });
   }
 
-  function jumpTo(si) {
-    const sec = song.sections[si];
+  function jumpTo(si) { jumpToBar(song.sections[si].start); }
+  function jumpToBar(bar) {
+    const tl = song.timeline[bar], sec = song.sections[tl.si];
     if (P.playing) {
-      if (P.bar < 0) P.startBar = sec.start;
-      else { P.jump = sec.start; toast(`Next bar → ${sec.name}`); }
+      if (P.bar < 0) P.startBar = bar;
+      else { P.jump = bar; toast(`Next bar → ${sec.name}${tl.b ? ` bar ${tl.b + 1}` : ''}`); }
     } else {
-      S.pos = sec.start;
+      S.pos = bar;
       showPosition(S.pos, -1);
     }
   }
@@ -598,7 +732,8 @@
       const bl = blockFor(s.name, blocks);
       if (bl) usedBlocks.add(bl);
       const body = bl && bl.lines.length ? bl.lines.map(lineHtml).join('') : '<span class="ln instr">—</span>';
-      return `<div class="lblock" data-si="${i}"><h4>${esc(s.name)} <small>· ${s.bars} bars</small></h4><p>${body}</p></div>`;
+      const ch = sectionChords(s);
+      return `<div class="lblock" data-si="${i}"><h4>${esc(s.name)} <small>· ${s.bars} bars</small>${ch ? `<span class="lchords">${esc(ch)}</span>` : ''}</h4><p>${body}</p></div>`;
     }).join('') + blocks.filter((b) => !usedBlocks.has(b) && b.name).map((b) =>
       `<div class="lblock" style="opacity:.4"><h4>[${esc(b.name)}] <small>· no matching section</small></h4><p>${b.lines.map(lineHtml).join('')}</p></div>`,
     ).join('');
@@ -614,7 +749,7 @@
     if (D.lyricSec !== si) {
       blocks.forEach((b, i) => b.classList.toggle('active', i === si));
       D.lyricSec = si; D.lyricLine = -1;
-      if (P.playing) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      if (P.playing && prefs.tab === 'lyrics') el.scrollIntoView({ block: 'center', behavior: 'smooth' });
     }
     const lines = el.querySelectorAll('.ln.sing');
     const li = lines.length ? Math.min(lines.length - 1, Math.floor(prog * lines.length)) : -1;
@@ -689,7 +824,8 @@
     S.muted = new Set(local.muted || []);
     S.pos = 0; S.loop = false; S.edit = false;
     D.bar = -99; D.grid = null; D.gridSteps = 0; D.chord = D.next = undefined;
-    $('#chordRow').hidden = !song.hasChords;
+    ['#nowChord', '#nowChips', '#chordsTab'].forEach((id) => { $(id).hidden = !song.hasChords; });
+    $('#nextBox').hidden = true;
     $('#capoLabel').textContent = song.capo ? `Capo ${song.capo}` : '';
     $('#songTitle').textContent = song.title;
     $('#songMeta').textContent = [song.artist, song.timeSig, `${song.timeline.length} bars`].filter(Boolean).join(' · ');
@@ -702,6 +838,8 @@
     renderSections();
     renderBeatDots();
     renderLyrics();
+    if (song.hasChords) renderChordsTab();
+    setTab(prefs.tab);
     showPosition(0, -1);
     $('#playerScroll').scrollTop = 0;
     document.title = `${song.title} · Backbeat`;
@@ -794,14 +932,7 @@
       $('#grid').classList.toggle('editing', S.edit);
       if (S.edit) toast('Tap cells to change hits');
     };
-    const applyGridVis = () => {
-      $('#grid').classList.toggle('hidden', !prefs.showGrid);
-      $('.legend').classList.toggle('hidden', !prefs.showGrid);
-      $('#gridToggle').textContent = prefs.showGrid ? 'Hide' : 'Show';
-      $('#editBtn').hidden = !prefs.showGrid;
-    };
-    $('#gridToggle').onclick = () => { prefs.showGrid = !prefs.showGrid; savePrefs(); applyGridVis(); };
-    applyGridVis();
+    $$('.tab').forEach((t) => { t.onclick = () => setTab(t.dataset.tab); });
 
     const applyFont = () => document.documentElement.style.setProperty('--lyric-size', prefs.lyricSize + 'px');
     $('#fontUp').onclick = () => { prefs.lyricSize = Math.min(34, prefs.lyricSize + 2); applyFont(); savePrefs(); };

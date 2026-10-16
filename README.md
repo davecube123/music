@@ -11,6 +11,7 @@ It's a **Progressive Web App (PWA)**: plain HTML/CSS/JS with no build step. You 
 - **Tempo**: big BPM readout, hold −/+ for fast changes, a slider, typed entry, tap tempo, and 50/75/90/100% practice presets. Your tempo is remembered for each song.
 - **Practice tools**: count-in, click on/off, loop the current section, step bar by bar, mute single drums (tap the drum name), separate drum and click volumes.
 - **Live drum grid** with a moving playhead. Turn on **Edit** to fix a pattern by tapping cells. Edits are saved on your device.
+- **Chord shapes**: the *Now* card (pinned at the top) shows the current chord's guitar diagram big and the next one small, with your position, beat dots and capo. The **Chords** tab lists every shape in the song and a bar-by-bar chart that follows playback; tap a bar to go there. **Lyrics**, **Chords** and **Drums** are tabs so you see one view at a time, and each lyric part shows its chords.
 - **Chord cue** (on/off, own volume): a soft held tone (root note with the chord faint behind it) sounds on each chord change, so you stay anchored to the key and the changes. It's deliberately not rhythmic, so the drums carry the groove. The current and next chord are shown big, with the capo position.
 - **Lyrics** follow the song: the current section is highlighted and scrolls into view, and the line being sung is estimated. Use **Edit** to paste or fix lyrics; they're saved on your device.
 - The screen stays awake while playing, and keyboard shortcuts work on desktop (Space, ↑/↓, T = tap, L = loop).
