@@ -1,5 +1,5 @@
 // Network-first so new songs show up as soon as you're online; cache keeps it working offline.
-const CACHE = 'backbeat-v1';
+const CACHE = 'backbeat-v2';
 const SHELL = ['./', 'index.html', 'styles.css', 'app.js', 'songs.js', 'manifest.webmanifest',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png'];
 
