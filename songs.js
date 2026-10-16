@@ -214,3 +214,233 @@ SONGS.push({
     { name: 'Chorus', bars: 8, pattern: 'chorus', first: 'chorusIn', fill: 'fill' },
   ],
 });
+
+/* ------------------------------------------------------------------
+ * Dancing in the Moonlight — Toploader (2000 cover of King Harvest)
+ * ~120 BPM, 4/4. Bouncy pop-rock groove: 8th hats, kick on 1, the "and"
+ * of 2 and 3, backbeat on 2 & 4; chorus opens the hats on the off-beats.
+ * Lyrics are not bundled (copyright) — paste them via Lyrics → Edit.
+ * ------------------------------------------------------------------ */
+SONGS.push({
+  id: 'dancing-in-the-moonlight',
+  title: 'Dancing in the Moonlight',
+  artist: 'Toploader',
+  bpm: 120,
+  timeSig: '4/4',
+  beats: 4,
+  steps: 16,
+  patterns: {
+    intro: {
+      HH: 'x-x-x-x-x-x-x-x-',
+      SN: '----x-------x---',
+      BD: 'X-----x-X-------',
+    },
+    verse: {
+      HH: 'x-x-x-x-x-x-x-x- x-x-x-x-x-x-x-x-',
+      SN: '----X-------X--- ----X-------X--g',
+      BD: 'X-----x-X------- X-----x-X-x-----',
+    },
+    verseIn: {
+      CR: 'X---------------',
+      HH: '--x-x-x-x-x-x-x-',
+      SN: '----X-------X---',
+      BD: 'X-----x-X-------',
+    },
+    chorus: {
+      HH: 'x-o-x-o-x-o-x-o-',
+      SN: '----X-------X---',
+      BD: 'X-----x-X-x---x-',
+    },
+    chorusIn: {
+      CR: 'X---------------',
+      HH: '--o-x-o-x-o-x-o-',
+      SN: '----X-------X---',
+      BD: 'X-----x-X-x---x-',
+    },
+    breakdown: {
+      HH: 'x-x-x-x-x-x-x-x-',
+      SS: '----x-------x---',
+      BD: 'X-------X-------',
+    },
+    fill: {
+      HH: 'x-x-x-x---------',
+      SN: '----X---x-xxX---',
+      T1: '------------x---',
+      FT: '-------------x-x',
+      BD: 'X-----x---------',
+    },
+    pickup: {
+      HH: 'x-x-x-x-x-x-----',
+      SN: '----X-------xxxx',
+      BD: 'X-----x-X-------',
+    },
+    ending: {
+      CR: 'X---------------',
+      BD: 'X---------------',
+    },
+  },
+  sections: [
+    { name: 'Intro',        bars: 8, pattern: 'intro', fill: 'pickup' },
+    { name: 'Verse 1',      bars: 8, pattern: 'verse', first: 'verseIn', fill: 'fill' },
+    { name: 'Verse 2',      bars: 8, pattern: 'verse', first: 'verseIn', fill: 'fill' },
+    { name: 'Chorus',       bars: 8, pattern: 'chorus', first: 'chorusIn', fill: 'fill' },
+    { name: 'Instrumental', bars: 8, pattern: 'intro', first: 'verseIn', fill: 'pickup' },
+    { name: 'Verse 3',      bars: 8, pattern: 'verse', first: 'verseIn', fill: 'fill' },
+    { name: 'Verse 4',      bars: 8, pattern: 'verse', first: 'verseIn', fill: 'fill' },
+    { name: 'Chorus 2',     bars: 8, pattern: 'chorus', first: 'chorusIn', fill: 'fill' },
+    { name: 'Breakdown',    bars: 8, pattern: 'breakdown', fill: 'pickup' },
+    { name: 'Chorus 3',     bars: 8, pattern: 'chorus', first: 'chorusIn', fill: 'fill' },
+    { name: 'Chorus 4',     bars: 8, pattern: 'chorus', first: 'chorusIn', fill: 'fill' },
+    { name: 'Outro',        bars: 4, pattern: 'chorus', first: 'chorusIn', fill: 'ending' },
+  ],
+  lyrics: `[Intro]
+(piano riff)
+(Tap Lyrics → Edit to paste the full lyrics under these headers.)
+
+[Verse 1]
+("We get it on…")
+
+[Verse 2]
+("Everybody here…")
+
+[Chorus]
+("Dancing in the moonlight…")
+
+[Instrumental]
+(piano riff)
+
+[Verse 3]
+("We like our fun…")
+
+[Verse 4]
+("Everybody here…")
+
+[Breakdown]
+(drums drop down — cross-stick)
+
+[Outro]
+(big ending)`,
+});
+
+/* ------------------------------------------------------------------
+ * Riptide — Vance Joy (2013)
+ * ~100 BPM, 4/4. Ukulele-led: intro has no drums, verse 1 is just a
+ * soft kick, the band (8th hats, backbeat) arrives in the chorus,
+ * the bridge drives on floor tom, then a stop-time breakdown.
+ * Lyrics are not bundled (copyright) — paste them via Lyrics → Edit.
+ * ------------------------------------------------------------------ */
+SONGS.push({
+  id: 'riptide',
+  title: 'Riptide',
+  artist: 'Vance Joy',
+  bpm: 100,
+  timeSig: '4/4',
+  beats: 4,
+  steps: 16,
+  patterns: {
+    tacet: {},
+    kick: {
+      BD: 'x-------x-------',
+    },
+    pre: {
+      HH: 'x-x-x-x-x-x-x-x-',
+      SS: '----x-------x---',
+      BD: 'X-------X-------',
+    },
+    preFill: {
+      HH: 'x-x-x-x-x-------',
+      SN: '------------xxxx',
+      BD: 'X-------X-------',
+    },
+    chorus: {
+      HH: 'x-x-x-x-x-x-x-x-',
+      SN: '----X-------X---',
+      BD: 'X-----x-X-------',
+    },
+    chorusIn: {
+      CR: 'X---------------',
+      HH: '--x-x-x-x-x-x-x-',
+      SN: '----X-------X---',
+      BD: 'X-----x-X-------',
+    },
+    verse2: {
+      HH: 'x-x-x-x-x-x-x-x-',
+      SS: '----x-------x---',
+      BD: 'X-----x-X-------',
+    },
+    interlude: {
+      HH: 'x-x-x-x-x-x-x-x-',
+      BD: 'X-------X-------',
+    },
+    bridge: {
+      FT: 'x-x-x-x-x-x-x-x-',
+      SN: '----X-------X---',
+      BD: 'X---X---X---X---',
+    },
+    bridgeFill: {
+      FT: 'x-x-x-x---------',
+      SN: '----X---xxxxXXXX',
+      BD: 'X---X---X---X---',
+    },
+    stop: {
+      CR: 'X--------------- ----------------',
+      BD: 'X--------------- ----------------',
+    },
+    stopFill: {
+      SN: '--------x-x-XXXX',
+      BD: 'X---------------',
+    },
+    fill: {
+      HH: 'x-x-x-x---------',
+      SN: '----X---xxxx----',
+      T1: '------------xx--',
+      FT: '--------------xx',
+      BD: 'X-----x---------',
+    },
+    ending: {
+      CR: 'X---------------',
+      BD: 'X---------------',
+    },
+  },
+  sections: [
+    { name: 'Intro',      bars: 4,  pattern: 'tacet' },
+    { name: 'Verse 1',    bars: 8,  pattern: 'kick' },
+    { name: 'Pre-Chorus', bars: 4,  pattern: 'pre', fill: 'preFill' },
+    { name: 'Chorus',     bars: 12, pattern: 'chorus', first: 'chorusIn', fill: 'fill' },
+    { name: 'Interlude',  bars: 4,  pattern: 'interlude' },
+    { name: 'Verse 2',    bars: 8,  pattern: 'verse2', fill: 'fill' },
+    { name: 'Pre-Chorus 2', bars: 4, pattern: 'pre', fill: 'preFill' },
+    { name: 'Chorus 2',   bars: 12, pattern: 'chorus', first: 'chorusIn', fill: 'fill' },
+    { name: 'Bridge',     bars: 8,  pattern: 'bridge', fill: 'bridgeFill' },
+    { name: 'Breakdown',  bars: 4,  pattern: 'stop', fill: 'stopFill' },
+    { name: 'Chorus 3',   bars: 12, pattern: 'chorus', first: 'chorusIn', fill: 'fill' },
+    { name: 'Outro',      bars: 4,  pattern: 'kick', fill: 'ending' },
+  ],
+  lyrics: `[Intro]
+(ukulele only — drums tacet)
+(Tap Lyrics → Edit to paste the full lyrics under these headers.)
+
+[Verse 1]
+("I was scared of dentists…")
+
+[Pre-Chorus]
+("Ooh… and they come unstuck")
+
+[Chorus]
+("Lady, running down to the riptide…")
+
+[Interlude]
+(ukulele riff)
+
+[Verse 2]
+("There's this movie…")
+
+[Bridge]
+("I just wanna, I just wanna know…")
+
+[Breakdown]
+(stop-time — crash on beat 1)
+
+[Outro]
+(last strum)`,
+});
