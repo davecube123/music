@@ -18,7 +18,7 @@
     del(k) { try { localStorage.removeItem(k); } catch { /* ignore */ } },
   };
   const prefs = Object.assign(
-    { click: true, countIn: true, drumVol: 0.9, clickVol: 0.55, lyricSize: 19, showGrid: true },
+    { click: true, countIn: true, guitar: true, drumVol: 0.9, clickVol: 0.55, guitarVol: 0.7, lyricSize: 19, showGrid: true },
     store.get('bb.prefs', {}),
   );
   const savePrefs = () => store.set('bb.prefs', prefs);
@@ -59,7 +59,10 @@
         if (b === 0 && s.first) { pn = s.first; pb = 0; }
         if (b === s.bars - 1 && s.fill) { pn = s.fill; pb = 0; }
         if (!patterns[pn]) { console.warn('Unknown pattern', pn, 'in', raw.title); patterns[pn] = { name: pn, steps, bars: 1, tracks: {} }; }
-        timeline.push({ si, b, pn, pb });
+        const cb = s.chords ? s.chords.split('|') : null;
+        const chords = cb ? cb[b % cb.length].trim().split(/\s+/).filter(Boolean) : null;
+        const strum = clean(s.strum || raw.strum || 'D-D-DUDU');
+        timeline.push({ si, b, pn, pb, chords: chords && chords.length ? chords : null, strum });
       }
       return { name: s.name, bars: s.bars, inst: !!s.inst, rate: s.bpm ? s.bpm / raw.bpm : 1, start, end: timeline.length - 1, color: secColor(s.name) };
     });
@@ -67,7 +70,8 @@
     Object.values(patterns).forEach((p) => Object.keys(p.tracks).forEach((k) => used.add(k)));
     return {
       raw, id: raw.id, title: raw.title, artist: raw.artist || '', bpm: raw.bpm, beats: raw.beats || 4,
-      timeSig: raw.timeSig || '4/4', patterns, timeline, sections,
+      timeSig: raw.timeSig || '4/4', patterns, timeline, sections, capo: raw.capo || 0,
+      hasChords: raw.sections.some((x) => x.chords),
       drums: DRUMS.map((d) => d[0]).filter((k) => used.has(k)),
       lyrics: local.lyrics != null ? local.lyrics : (raw.lyrics || ''),
     };
@@ -85,7 +89,7 @@
   }
 
   /* ---------------- audio engine ---------------- */
-  let ctx, drumBus, clickBus, noiseBuf, openHat = null;
+  let ctx, drumBus, clickBus, guitarBus, noiseBuf, openHat = null;
   const METAL = [263, 400, 421, 474, 587, 845];
 
   function initAudio() {
@@ -97,6 +101,9 @@
     comp.connect(ctx.destination);
     drumBus = ctx.createGain(); drumBus.connect(comp);
     clickBus = ctx.createGain(); clickBus.connect(ctx.destination);
+    guitarBus = ctx.createGain();
+    const gTone = filt('lowpass', 4200); gTone.connect(comp);
+    guitarBus.connect(gTone);
     applyVolumes();
     const len = ctx.sampleRate * 3;
     noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
@@ -107,6 +114,7 @@
     if (!ctx) return;
     drumBus.gain.value = prefs.drumVol;
     clickBus.gain.value = prefs.clickVol;
+    guitarBus.gain.value = prefs.guitarVol;
   }
 
   function env(t, peak, decay, dest, attack = 0.001) {
@@ -207,6 +215,121 @@
     osc('triangle', t, f, 0, 0, 0.05).connect(env(t, accent ? 0.7 : 0.45, 0.045, clickBus));
   }
 
+  /* ---------------- guitar (Karplus-Strong plucked strings) ---------------- */
+  const OPEN = [40, 45, 50, 55, 59, 64]; // E2 A2 D3 G3 B3 E4
+  const NOTE = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+  const SHAPES = {
+    C: 'x32010', C7: 'x32310', Cmaj7: 'x32000', Cadd9: 'x32030', D: 'xx0232', D7: 'xx0212', Dm: 'xx0231',
+    Dm7: 'xx0211', Dsus2: 'xx0230', Dsus4: 'xx0233', Dmaj7: 'xx0222', E: '022100', E7: '020100', Em: '022000',
+    Em7: '022030', Emaj7: '021100', Esus4: '022200', F: '133211', Fmaj7: 'xx3210', G: '320003', G7: '320001',
+    G6: '320000', Gmaj7: '320002', A: 'x02220', A7: 'x02020', Am: 'x02210', Am7: 'x02010', Amaj7: 'x02120',
+    Asus2: 'x02200', Asus4: 'x02230', B7: 'x21202', Bm: 'x24432', B: 'x24442', 'F#': '244322', 'F#m': '244222',
+    'C#m': 'x46654', 'C#m7': 'x46454', 'G#m': '466444',
+  };
+  // movable shapes: [E-string root, A-string root] relative frets (null = muted)
+  const MOVABLE = {
+    '': [[0, 2, 2, 1, 0, 0], [null, 0, 2, 2, 2, 0]], m: [[0, 2, 2, 0, 0, 0], [null, 0, 2, 2, 1, 0]],
+    7: [[0, 2, 0, 1, 0, 0], [null, 0, 2, 0, 2, 0]], m7: [[0, 2, 0, 0, 0, 0], [null, 0, 2, 0, 1, 0]],
+    maj7: [[0, 2, 1, 1, 0, 0], [null, 0, 2, 1, 2, 0]], sus4: [[0, 2, 2, 2, 0, 0], [null, 0, 2, 2, 3, 0]],
+    sus2: [[0, 2, 4, 4, 0, 0], [null, 0, 2, 2, 0, 0]], 6: [[0, 2, 2, 1, 2, 0], [null, 0, 2, 2, 2, 2]],
+  };
+  const voicings = {};
+  function voicing(name) {
+    if (voicings[name]) return voicings[name];
+    const m = String(name).replace(/\/.*$/, '').match(/^([A-G])([#b]?)(.*)$/);
+    if (!m) return null;
+    const root = (NOTE[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0) + 12) % 12;
+    let q = m[3];
+    let frets;
+    const key = Object.keys(SHAPES).find((k) => k === m[1] + m[2] + q);
+    if (key) frets = SHAPES[key].split('').map((c) => (c === 'x' ? null : +c));
+    else {
+      if (!MOVABLE[q]) q = /^m(?!aj)/.test(q) ? (/7/.test(q) ? 'm7' : 'm') : (/maj7/.test(q) ? 'maj7' : /7/.test(q) ? '7' : '');
+      const fe = (root - 4 + 12) % 12, fa = (root - 9 + 12) % 12;
+      const useE = fe <= fa;
+      const base = useE ? fe : fa;
+      frets = MOVABLE[q][useE ? 0 : 1].map((f) => (f == null ? null : f + base));
+    }
+    const notes = [];
+    frets.forEach((f, i) => { if (f != null) notes.push(OPEN[i] + f); });
+    return (voicings[name] = notes);
+  }
+
+  const pluckCache = {};
+  function pluck(midi) {
+    if (pluckCache[midi]) return pluckCache[midi];
+    const sr = ctx.sampleRate, f = 440 * Math.pow(2, (midi - 69) / 12);
+    const len = Math.floor(sr * 2.6), N = Math.max(2, Math.round(sr / f - 0.5));
+    const buf = ctx.createBuffer(1, len, sr), d = buf.getChannelData(0);
+    let prev = 0;
+    for (let i = 0; i < N; i++) { prev = prev * 0.5 + (Math.random() * 2 - 1) * 0.5; d[i] = prev; }
+    const rho = 0.4985 + Math.min(0.0012, 18 / f * 0.0012);
+    for (let i = N; i < len; i++) d[i] = rho * (d[i - N] + d[i - N + 1]);
+    // loop period is N + 0.5 samples; correct the rounding with playback rate
+    return (pluckCache[midi] = { buf, rate: (N + 0.5) / (sr / f) });
+  }
+
+  const strings = []; // currently ringing voice per string slot
+  function stopString(i, t) {
+    const v = strings[i];
+    if (!v) return;
+    v.g.gain.cancelScheduledValues(t);
+    v.g.gain.setTargetAtTime(0.0001, t, 0.025);
+    try { v.src.stop(t + 0.3); } catch { /* already stopped */ }
+    strings[i] = null;
+  }
+  function playString(i, midi, t, vel, muted) {
+    stopString(i, t);
+    const src = ctx.createBufferSource();
+    const pk = pluck(midi);
+    src.buffer = pk.buf;
+    src.playbackRate.value = pk.rate;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(vel * 0.16, t);
+    if (muted) g.gain.setTargetAtTime(0.0001, t + 0.015, 0.02);
+    src.connect(g).connect(guitarBus);
+    src.start(t);
+    strings[i] = { src, g };
+  }
+  function strum(notes, t, ch, beatDur) {
+    if (!notes || !notes.length) return;
+    const up = ch === 'U' || ch === 'u';
+    const vel = ch === 'D' || ch === 'U' ? 1 : ch === 'x' ? 0.8 : 0.6;
+    const list = notes.map((n, i) => [n, i]);
+    const play = up ? list.slice(-4).reverse() : list;
+    const spread = Math.min(0.014, beatDur * 0.03);
+    play.forEach(([n, i], k) => playString(i, n + song.capo, t + k * spread, vel * (up ? 0.8 : 1), ch === 'x'));
+  }
+  function guitarEvent(chordName, ch, t, beatDur) {
+    if (ch === '.') { for (let i = 0; i < 6; i++) stopString(i, t); return; }
+    if (!chordName || chordName === '-' || /^n\.?c\.?$/i.test(chordName)) { for (let i = 0; i < 6; i++) stopString(i, t); return; }
+    const notes = voicing(chordName);
+    if (!notes) return;
+    if (/[1-6]/.test(ch)) {
+      const i = Math.min(notes.length, +ch) - 1;
+      playString(i, notes[i] + song.capo, t, 0.75);
+    } else strum(notes, t, ch, beatDur);
+  }
+  function guitarSilence(t) { if (ctx) for (let i = 0; i < 6; i++) stopString(i, t); }
+
+  // Chord sounding at a fraction (0..1) through a bar.
+  function chordAt(bar, frac) {
+    const c = bar >= 0 && song.timeline[bar] && song.timeline[bar].chords;
+    return c ? c[Math.min(c.length - 1, Math.floor(frac * c.length + 1e-9))] : null;
+  }
+  function nextChordAfter(bar, frac) {
+    const cur = chordAt(bar, frac);
+    for (let b = bar; b < Math.min(song.timeline.length, bar + 8); b++) {
+      const c = song.timeline[b].chords;
+      if (!c) continue;
+      for (let j = 0; j < c.length; j++) {
+        if (b === bar && (j + 1) / c.length <= frac + 1e-9) continue;
+        if (c[j] !== cur && c[j] !== '-') return c[j];
+      }
+    }
+    return null;
+  }
+
   /* ---------------- app state ---------------- */
   let song = null;
   const S = { bpm: 120, pos: 0, loop: false, muted: new Set(), edit: false };
@@ -244,6 +367,7 @@
 
   function stop(ended) {
     clearInterval(P.timer);
+    guitarSilence(ctx.currentTime);
     P.playing = false;
     P.queue = [];
     if (ended) S.pos = 0;
@@ -283,6 +407,15 @@
     const tl = song.timeline[bar];
     const p = pat(tl.pn);
     const i = tl.pb * p.steps + step;
+    if (prefs.guitar && tl.chords) {
+      const sd = stepDur(bar), L = tl.strum.length;
+      for (let g = Math.ceil(step * L / p.steps - 1e-9); g < (step + 1) * L / p.steps - 1e-9; g++) {
+        const ch = tl.strum[g];
+        if (!ch || ch === '-') continue;
+        const at = t + (g * p.steps / L - step) * sd;
+        guitarEvent(chordAt(bar, g / L), ch, at, sd * p.steps / song.beats);
+      }
+    }
     for (const k in p.tracks) {
       if (S.muted.has(k) || !SYN[k]) continue;
       const ch = p.tracks[k][i];
@@ -340,6 +473,15 @@
     if (fill) fill.style.width = (step < 0 && tl.b === 0 ? 0 : prog * 100) + '%';
     if (D.grid) D.grid.forEach((row) => row.forEach((c, i) => c.classList.toggle('now', i === step)));
     updateLyrics(tl.si, prog);
+    if (song.hasChords) {
+      const frac = Math.max(step, 0) / p.steps;
+      const c = chordAt(bar, frac) || '–', n = nextChordAfter(bar, frac);
+      if (c !== D.chord || n !== D.next) {
+        D.chord = c; D.next = n;
+        $('#chordNow').textContent = c;
+        $('#chordNext').textContent = n ? `then ${n}` : '';
+      }
+    }
   }
 
   function renderSections() {
@@ -590,7 +732,9 @@
     const local = loadLocal(id);
     S.muted = new Set(local.muted || []);
     S.pos = 0; S.loop = false; S.edit = false;
-    D.bar = -99; D.grid = null; D.gridSteps = 0;
+    D.bar = -99; D.grid = null; D.gridSteps = 0; D.chord = D.next = undefined;
+    $('#chordRow').hidden = !song.hasChords;
+    $('#capoLabel').textContent = song.capo ? `Capo ${song.capo}` : '';
     $('#songTitle').textContent = song.title;
     $('#songMeta').textContent = [song.artist, song.timeSig, `${song.timeline.length} bars`].filter(Boolean).join(' · ');
     $('#origBpm').textContent = song.bpm;
@@ -669,6 +813,15 @@
       const b = P.playing ? D.bar : S.pos;
       if (b >= 0) toast(S.loop ? `Looping ${song.sections[song.timeline[b].si].name}` : 'Loop off');
     };
+    const guitarBtn = $('#guitarBtn');
+    setToggle(guitarBtn, prefs.guitar);
+    guitarBtn.onclick = () => {
+      prefs.guitar = !prefs.guitar; setToggle(guitarBtn, prefs.guitar); savePrefs();
+      if (!prefs.guitar && P.playing) guitarSilence(ctx.currentTime);
+      toast(prefs.guitar ? 'Guitar on' : 'Guitar off');
+    };
+    $('#guitarVol').value = prefs.guitarVol;
+    $('#guitarVol').oninput = (e) => { prefs.guitarVol = +e.target.value; applyVolumes(); savePrefs(); };
     mixBtn.onclick = () => { const m = $('#mixer'); m.hidden = !m.hidden; setToggle(mixBtn, !m.hidden); };
     $('#drumVol').value = prefs.drumVol;
     $('#clickVol').value = prefs.clickVol;

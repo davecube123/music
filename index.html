@@ -59,6 +59,13 @@
         <div id="beatDots" class="beat-dots"></div>
       </div>
 
+      <!-- chords + guitar accompaniment -->
+      <div class="chord-row" id="chordRow" hidden>
+        <div class="chord-box"><span class="chord-now" id="chordNow">–</span><span class="chord-next" id="chordNext"></span></div>
+        <span class="capo" id="capoLabel"></span>
+        <button class="chip" id="guitarBtn" aria-pressed="true">🎸 Guitar</button>
+      </div>
+
       <!-- drum grid -->
       <div class="panel grid-panel" id="gridPanel">
         <div class="panel-head">
@@ -129,6 +136,7 @@
       <div class="mixer" id="mixer" hidden>
         <label>Drums <input type="range" id="drumVol" min="0" max="1" step="0.01"></label>
         <label>Click <input type="range" id="clickVol" min="0" max="1" step="0.01"></label>
+        <label>Guitar <input type="range" id="guitarVol" min="0" max="1" step="0.01"></label>
       </div>
     </footer>
   </section>

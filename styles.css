@@ -85,6 +85,15 @@ input, textarea { font: inherit; color: inherit; }
 .dot.first.on { background: var(--accent); box-shadow: 0 0 14px var(--accent); }
 .dot.count { background: var(--accent2); box-shadow: 0 0 12px var(--accent2); }
 
+.chord-row { display: flex; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 8px 12px; margin-bottom: 12px; }
+.chord-row[hidden] { display: none; }
+.chord-box { flex: 1; display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.chord-now { font-size: 30px; font-weight: 800; color: var(--accent2); letter-spacing: -0.5px; }
+.chord-next { color: var(--dim); font-size: 14px; white-space: nowrap; }
+.capo { font-size: 12px; color: var(--dim); white-space: nowrap; }
+#guitarBtn[aria-pressed=true] { border-color: var(--accent2); color: var(--accent2); }
+#guitarBtn[aria-pressed=false] { opacity: 0.6; }
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; margin-bottom: 12px; }
 .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
   font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dim); }
@@ -175,7 +184,7 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
 .play.playing .i-play { display: none; }
 .play.playing .i-stop { display: block; }
 .play .i-play { margin-left: 4px; }
-.mixer { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; font-size: 12px; color: var(--dim); }
+.mixer { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 8px; font-size: 12px; color: var(--dim); }
 .mixer[hidden] { display: none; }
 
 /* ---------- sheets ---------- */
