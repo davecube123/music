@@ -61,7 +61,7 @@
         if (!patterns[pn]) { console.warn('Unknown pattern', pn, 'in', raw.title); patterns[pn] = { name: pn, steps, bars: 1, tracks: {} }; }
         timeline.push({ si, b, pn, pb });
       }
-      return { name: s.name, bars: s.bars, inst: !!s.inst, start, end: timeline.length - 1, color: secColor(s.name) };
+      return { name: s.name, bars: s.bars, inst: !!s.inst, rate: s.bpm ? s.bpm / raw.bpm : 1, start, end: timeline.length - 1, color: secColor(s.name) };
     });
     const used = new Set();
     Object.values(patterns).forEach((p) => Object.keys(p.tracks).forEach((k) => used.add(k)));
@@ -215,7 +215,9 @@
 
   const pat = (name) => song.patterns[name];
   const barSteps = (bar) => (bar < 0 ? song.beats : pat(song.timeline[bar].pn).steps);
-  const stepDur = (bar) => (song.beats * 60 / S.bpm) / barSteps(bar);
+  // A section may set its own bpm (songs that speed up); it scales with the user's tempo.
+  const rateAt = (bar) => song.sections[song.timeline[bar < 0 ? P.startBar : bar].si].rate;
+  const stepDur = (bar) => (song.beats * 60 / (S.bpm * rateAt(bar))) / barSteps(bar);
   function beatOf(bar, step) {
     const per = barSteps(bar) / song.beats;
     const q = step / per;
@@ -324,7 +326,7 @@
     const tl = song.timeline[bar];
     const sec = song.sections[tl.si];
     if (barChanged) {
-      $('#posLabel').innerHTML = `${esc(sec.name)} <small>· bar ${tl.b + 1}/${sec.bars}</small>`;
+      $('#posLabel').innerHTML = `${esc(sec.name)} <small>· bar ${tl.b + 1}/${sec.bars}${sec.rate !== 1 ? ` · ${Math.round(S.bpm * sec.rate)} bpm` : ''}</small>`;
       renderGridBar(bar);
       $$('#sections .sec').forEach((el, i) => {
         el.classList.toggle('active', i === tl.si);

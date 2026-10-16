@@ -12,10 +12,11 @@
  *   patterns  { name: { steps?, KEY: 'x-x-...' } }  — one string per drum.
  *             A string longer than `steps` spans several bars (e.g. 32 chars = 2 bars of 16ths).
  *             Spaces and '|' are ignored, so you can write 'x-x- x-x- | x-x- x-x-'.
- *   sections  [{ name, bars, pattern, first?, fill? }] — the song's arrangement in order.
+ *   sections  [{ name, bars, pattern, first?, fill?, bpm? }] — the song's arrangement in order.
  *             `first` replaces the first bar (e.g. a crash bar), `fill` replaces the last bar.
  *   lyrics    optional text. Headers in [brackets] are matched to section names.
  *             A header like [Chorus] also matches "Chorus 2", so a chorus can be written once.
+ *   (section) bpm: own tempo for that part (scales with the tempo you set).
  *   (section) inst: true marks a part with no singing, so pasted lyrics skip it.
  *
  * Drum keys:  CR crash · RD ride · HH hi-hat · HP hi-hat pedal · SS cross-stick · SN snare
@@ -445,3 +446,122 @@ SONGS.push({
 [Outro]
 (last strum)`,
 });
+
+/* ------------------------------------------------------------------
+ * Under the Bridge — Red Hot Chili Peppers (1991)
+ * Grooves follow Bonedo's Chad Smith drum transcription:
+ *  - Verse 1: guitar alone for the first half, then hi-hat + rim click, no kick.
+ *  - A 2-bar drum break (still no kick) leads into each chorus.
+ *  - Chorus: kick arrives on "1-and", rim click on every beat.
+ *  - Verse 2: 4-bar kick pattern with rim click on 2 & 4.
+ *  - After chorus 2 a fill takes it to ride + rimshots; the end speeds up to ~88 BPM.
+ * Lyrics are not bundled (copyright) — paste them via Lyrics → Edit → Paste.
+ * ------------------------------------------------------------------ */
+(() => {
+  const rest = (bars) => '-'.repeat(16 * bars);
+  const HH8 = 'x-x-x-x-x-x-x-x-';
+  SONGS.push({
+    id: 'under-the-bridge',
+    title: 'Under the Bridge',
+    artist: 'Red Hot Chili Peppers',
+    bpm: 84,
+    timeSig: '4/4',
+    beats: 4,
+    steps: 16,
+    patterns: {
+      tacet: {},
+      // 16 bars: 8 bars guitar only, 2-bar drum entry, then the verse-1 groove
+      verse1: {
+        HH: rest(8) + HH8 + 'x-x-x-x-x-x-x-o-' + HH8.repeat(6),
+        SS: rest(8) + '----x---x---x---' + 'x---x---x---x---' + '----x-------x---'.repeat(6),
+      },
+      groove1: {
+        HH: HH8,
+        SS: '----x-------x---',
+      },
+      drumBreak: {
+        HH: 'x-xxx-x-x-xxx-x- x-xxx-x-x-xxx-o-',
+        SS: '----x--x-g--x--- -g--x--x-g--x---',
+      },
+      chorus: {
+        HH: HH8 + 'x-x-x-x-x-x-x-o-' + HH8 + 'x-x-x-x-x-x-x-o-',
+        SS: '----x---x---x--- x---x---x---x--- x---x---x---x--- x---x---x---x---',
+        BD: '--x---x-x------- x-----x-x------- --x---x-x------- x-----x-x-------',
+      },
+      verse2: {
+        HH: HH8 + HH8 + HH8 + 'x-x-x-x-x-x-x-o-',
+        SS: '----x-------x---'.repeat(4),
+        BD: 'x-----x--------- ------x---x----- x-----x--------- --x---x-x-------',
+      },
+      bigFill: {
+        HH: 'x-x-x-x---------',
+        SN: '--------XxxxXxxx',
+        T1: '------------x---',
+        FT: '--------------xx',
+        BD: 'x-----x---------',
+      },
+      outro: {
+        RD: HH8.repeat(4),
+        SN: '----X-------X---'.repeat(4),
+        BD: 'X-----x-x------- --x---x---x----- x-----x-x--x---- x-x---x---x---x-',
+      },
+      outroIn: {
+        CR: 'X---------------',
+        RD: '--x-x-x-x-x-x-x-',
+        SN: '----X-------X---',
+        BD: 'X-----x-x-------',
+      },
+      outroFill: {
+        RD: 'x-x-x-x---------',
+        SN: '----X---XxXx----',
+        T1: '------------x---',
+        FT: '-------------x-x',
+        BD: 'X-----x---------',
+      },
+      ending: {
+        CR: 'X---------------',
+        BD: 'X---------------',
+      },
+    },
+    sections: [
+      { name: 'Intro', inst: true,       bars: 8,  pattern: 'tacet' },
+      { name: 'Verse 1',                 bars: 16, pattern: 'verse1' },
+      { name: 'Drum Break', inst: true,  bars: 2,  pattern: 'drumBreak' },
+      { name: 'Chorus',                  bars: 8,  pattern: 'chorus' },
+      { name: 'Interlude', inst: true,   bars: 2,  pattern: 'groove1' },
+      { name: 'Verse 2',                 bars: 8,  pattern: 'verse2' },
+      { name: 'Drum Break 2', inst: true, bars: 2, pattern: 'drumBreak' },
+      { name: 'Chorus 2',                bars: 8,  pattern: 'chorus' },
+      { name: 'Chorus Tag',              bars: 4,  pattern: 'chorus', fill: 'bigFill' },
+      { name: 'Bridge',                  bars: 16, pattern: 'outro', first: 'outroIn', fill: 'outroFill', bpm: 88 },
+      { name: 'Outro',                   bars: 8,  pattern: 'outro', first: 'outroIn', fill: 'ending', bpm: 88 },
+    ],
+    lyrics: `[Intro]
+(guitar intro — no drums)
+(Tap Lyrics → Edit to paste the full lyrics under these headers.)
+
+[Verse 1]
+("Sometimes I feel…" — drums come in halfway)
+
+[Drum Break]
+(2-bar drum break, no kick)
+
+[Chorus]
+("I don't ever wanna feel…")
+
+[Interlude]
+(guitar)
+
+[Verse 2]
+("It's hard to believe…")
+
+[Chorus Tag]
+(fill into the big ending)
+
+[Bridge]
+("Under the bridge downtown…" — ride + rimshots, ~88 BPM)
+
+[Outro]
+(last chord)`,
+  });
+})();
