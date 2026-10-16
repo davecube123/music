@@ -61,7 +61,7 @@
         if (!patterns[pn]) { console.warn('Unknown pattern', pn, 'in', raw.title); patterns[pn] = { name: pn, steps, bars: 1, tracks: {} }; }
         timeline.push({ si, b, pn, pb });
       }
-      return { name: s.name, bars: s.bars, start, end: timeline.length - 1, color: secColor(s.name) };
+      return { name: s.name, bars: s.bars, inst: !!s.inst, start, end: timeline.length - 1, color: secColor(s.name) };
     });
     const used = new Set();
     Object.values(patterns).forEach((p) => Object.keys(p.tracks).forEach((k) => used.add(k)));
@@ -454,7 +454,7 @@
     let cur = null;
     String(text || '').split(/\r?\n/).forEach((line) => {
       const m = line.match(/^\s*\[(.+?)\]\s*$/);
-      if (m) { cur = { name: m[1].trim(), lines: [] }; blocks.push(cur); return; }
+      if (m) { cur = { name: m[1].split(':')[0].trim(), lines: [] }; blocks.push(cur); return; }
       if (!cur) { cur = { name: null, lines: [] }; blocks.push(cur); }
       cur.lines.push(line);
     });
@@ -720,14 +720,52 @@
     };
     $('#lyricsCancel').onclick = () => sheet('#lyricsSheet', false);
     $('#lyricsRevert').onclick = () => { $('#lyricsText').value = song.raw.lyrics || template(); };
+    $('#lyricsFind').onclick = () => {
+      const q = `${song.title} ${song.artist} lyrics`;
+      window.open('https://www.google.com/search?q=' + encodeURIComponent(q), '_blank', 'noopener');
+    };
+    $('#lyricsPaste').onclick = async () => {
+      try {
+        const clip = await navigator.clipboard.readText();
+        if (!clip.trim()) throw new Error('empty');
+        $('#lyricsText').value = clip;
+        toast('Pasted, now tap Save');
+      } catch {
+        $('#lyricsText').focus();
+        toast('Long-press the box and choose Paste');
+      }
+    };
+    $('#lyricsClear').onclick = () => { $('#lyricsText').value = ''; $('#lyricsText').focus(); };
     $('#lyricsSave').onclick = () => {
-      const txt = $('#lyricsText').value;
+      let txt = $('#lyricsText').value.replace(/\r\n/g, '\n');
+      const hasHeaders = /^\s*\[.+\]\s*$/m.test(txt);
+      if (txt.trim() && !hasHeaders) {
+        const r = autoSection(txt);
+        txt = r.text;
+        toast(`Matched ${r.used} verses to the song's parts`);
+      }
       song.lyrics = txt;
       saveLocal(song.id, { lyrics: txt === (song.raw.lyrics || '') ? undefined : txt });
       renderLyrics();
       if (D.bar >= 0) showPosition(D.bar, P.playing ? D.step : -1);
       sheet('#lyricsSheet', false);
     };
+
+    // Plain pasted lyrics (no [headers]): split into stanzas at blank lines and
+    // hand them, in order, to the song's sung sections.
+    function autoSection(text) {
+      const stanzas = text.split(/\n\s*\n/).map((x) => x.trim()).filter(Boolean);
+      const vocal = song.sections.filter((x) => !x.inst);
+      let k = 0;
+      const out = song.sections.map((sec) => {
+        if (sec.inst) return `[${sec.name}]\n(instrumental)`;
+        const last = sec === vocal[vocal.length - 1];
+        const body = last ? stanzas.slice(k).join('\n\n') : (stanzas[k] || '');
+        k = last ? stanzas.length : k + 1;
+        return `[${sec.name}]\n${body}`;
+      });
+      return { text: out.join('\n\n'), used: Math.min(stanzas.length, vocal.length) };
+    }
 
     // keyboard
     document.addEventListener('keydown', (e) => {

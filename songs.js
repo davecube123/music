@@ -16,6 +16,7 @@
  *             `first` replaces the first bar (e.g. a crash bar), `fill` replaces the last bar.
  *   lyrics    optional text. Headers in [brackets] are matched to section names.
  *             A header like [Chorus] also matches "Chorus 2", so a chorus can be written once.
+ *   (section) inst: true marks a part with no singing, so pasted lyrics skip it.
  *
  * Drum keys:  CR crash · RD ride · HH hi-hat · HP hi-hat pedal · SS cross-stick · SN snare
  *             T1 high tom · T2 mid tom · FT floor tom · BD kick
@@ -71,12 +72,12 @@ SONGS.push({
     },
   },
   sections: [
-    { name: 'Intro',    bars: 4, pattern: 'intro', fill: 'fill' },
+    { name: 'Intro', inst: true,    bars: 4, pattern: 'intro', fill: 'fill' },
     { name: 'Verse 1',  bars: 8, pattern: 'verse', first: 'crash', fill: 'fill' },
     { name: 'Chorus',   bars: 8, pattern: 'chorus', first: 'chorusIn', fill: 'fill' },
     { name: 'Verse 2',  bars: 8, pattern: 'verse', first: 'crash', fill: 'fill' },
     { name: 'Chorus 2', bars: 8, pattern: 'chorus', first: 'chorusIn', fill: 'fill' },
-    { name: 'Outro',    bars: 1, pattern: 'ending' },
+    { name: 'Outro', inst: true, bars: 1, pattern: 'ending' },
   ],
   lyrics: `[Intro]
 (hi-hat and kick)
@@ -144,11 +145,11 @@ SONGS.push({
     },
   },
   sections: [
-    { name: 'Intro',   bars: 4, pattern: 'intro', fill: 'fill' },
+    { name: 'Intro', inst: true,   bars: 4, pattern: 'intro', fill: 'fill' },
     { name: 'Verse 1', bars: 8, pattern: 'shuffle', first: 'shuffleCrash', fill: 'fill' },
     { name: 'Verse 2', bars: 8, pattern: 'shuffle', first: 'shuffleCrash', fill: 'fill' },
     { name: 'Verse 3', bars: 8, pattern: 'rideShuffle', first: 'shuffleCrash', fill: 'fill' },
-    { name: 'Outro',   bars: 1, pattern: 'end' },
+    { name: 'Outro', inst: true, bars: 1, pattern: 'end' },
   ],
   lyrics: `[Intro]
 (cross-stick shuffle)
@@ -219,7 +220,7 @@ SONGS.push({
  * Dancing in the Moonlight — Toploader (2000 cover of King Harvest)
  * ~120 BPM, 4/4. Bouncy pop-rock groove: 8th hats, kick on 1, the "and"
  * of 2 and 3, backbeat on 2 & 4; chorus opens the hats on the off-beats.
- * Lyrics are not bundled (copyright) — paste them via Lyrics → Edit.
+ * Lyrics are not bundled (copyright) — paste them via Lyrics → Edit → Paste.
  * ------------------------------------------------------------------ */
 SONGS.push({
   id: 'dancing-in-the-moonlight',
@@ -280,11 +281,11 @@ SONGS.push({
     },
   },
   sections: [
-    { name: 'Intro',        bars: 8, pattern: 'intro', fill: 'pickup' },
+    { name: 'Intro', inst: true,        bars: 8, pattern: 'intro', fill: 'pickup' },
     { name: 'Verse 1',      bars: 8, pattern: 'verse', first: 'verseIn', fill: 'fill' },
     { name: 'Verse 2',      bars: 8, pattern: 'verse', first: 'verseIn', fill: 'fill' },
     { name: 'Chorus',       bars: 8, pattern: 'chorus', first: 'chorusIn', fill: 'fill' },
-    { name: 'Instrumental', bars: 8, pattern: 'intro', first: 'verseIn', fill: 'pickup' },
+    { name: 'Instrumental', inst: true, bars: 8, pattern: 'intro', first: 'verseIn', fill: 'pickup' },
     { name: 'Verse 3',      bars: 8, pattern: 'verse', first: 'verseIn', fill: 'fill' },
     { name: 'Verse 4',      bars: 8, pattern: 'verse', first: 'verseIn', fill: 'fill' },
     { name: 'Chorus 2',     bars: 8, pattern: 'chorus', first: 'chorusIn', fill: 'fill' },
@@ -327,7 +328,7 @@ SONGS.push({
  * ~100 BPM, 4/4. Ukulele-led: intro has no drums, verse 1 is just a
  * soft kick, the band (8th hats, backbeat) arrives in the chorus,
  * the bridge drives on floor tom, then a stop-time breakdown.
- * Lyrics are not bundled (copyright) — paste them via Lyrics → Edit.
+ * Lyrics are not bundled (copyright) — paste them via Lyrics → Edit → Paste.
  * ------------------------------------------------------------------ */
 SONGS.push({
   id: 'riptide',
@@ -403,18 +404,18 @@ SONGS.push({
     },
   },
   sections: [
-    { name: 'Intro',      bars: 4,  pattern: 'tacet' },
+    { name: 'Intro', inst: true,      bars: 4,  pattern: 'tacet' },
     { name: 'Verse 1',    bars: 8,  pattern: 'kick' },
     { name: 'Pre-Chorus', bars: 4,  pattern: 'pre', fill: 'preFill' },
     { name: 'Chorus',     bars: 12, pattern: 'chorus', first: 'chorusIn', fill: 'fill' },
-    { name: 'Interlude',  bars: 4,  pattern: 'interlude' },
+    { name: 'Interlude', inst: true,  bars: 4,  pattern: 'interlude' },
     { name: 'Verse 2',    bars: 8,  pattern: 'verse2', fill: 'fill' },
     { name: 'Pre-Chorus 2', bars: 4, pattern: 'pre', fill: 'preFill' },
     { name: 'Chorus 2',   bars: 12, pattern: 'chorus', first: 'chorusIn', fill: 'fill' },
     { name: 'Bridge',     bars: 8,  pattern: 'bridge', fill: 'bridgeFill' },
     { name: 'Breakdown',  bars: 4,  pattern: 'stop', fill: 'stopFill' },
     { name: 'Chorus 3',   bars: 12, pattern: 'chorus', first: 'chorusIn', fill: 'fill' },
-    { name: 'Outro',      bars: 4,  pattern: 'kick', fill: 'ending' },
+    { name: 'Outro', inst: true, bars: 4, pattern: 'kick', fill: 'ending' },
   ],
   lyrics: `[Intro]
 (ukulele only — drums tacet)
@@ -439,7 +440,7 @@ SONGS.push({
 ("I just wanna, I just wanna know…")
 
 [Breakdown]
-(stop-time — crash on beat 1)
+("I swear she's destined…" — stop-time, crash on beat 1)
 
 [Outro]
 (last strum)`,

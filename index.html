@@ -147,7 +147,12 @@
   <div class="sheet-backdrop" id="lyricsSheet" hidden>
     <div class="sheet tall">
       <h3>Edit lyrics</h3>
-      <p class="help">Put each part under a header that matches the song sections, e.g. <code id="sectionHint">[Verse 1]</code>. A part written once (like <code>[Chorus]</code>) is reused every time that part comes round. Saved on this device only.</p>
+      <p class="help">1. Tap <b>Find lyrics</b> and copy the lyrics from a lyrics site. 2. Come back and tap <b>Paste</b>. 3. Tap <b>Save</b>, and the verses are matched to the song's parts for you. Headers like <code id="sectionHint">[Verse 1]</code> are optional. Saved on this device only.</p>
+      <div class="sheet-row top">
+        <button class="chip" id="lyricsFind">🔍 Find lyrics</button>
+        <button class="chip" id="lyricsPaste">📋 Paste</button>
+        <button class="chip" id="lyricsClear">Clear</button>
+      </div>
       <textarea id="lyricsText" spellcheck="false"></textarea>
       <div class="sheet-row">
         <button class="chip" id="lyricsRevert">Restore original</button>
