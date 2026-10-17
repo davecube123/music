@@ -736,3 +736,91 @@ SONGS.push({
 [Outro]
 (jam to the end)`,
 });
+
+/* ------------------------------------------------------------------
+ * The Zephyr Song — Red Hot Chili Peppers (2002)
+ * ~118 BPM, 4/4. No published drum transcription found, so the grooves are
+ * an approximation in Chad Smith's style: relaxed 8th hi-hat and backbeat in
+ * the verses, opened-up hats in the chorus, a half-time bridge.
+ * Chords (standard tuning, no capo): verse/intro Am G Em F (2 beats each),
+ * chorus D G A with an "Am G Em F" tag.
+ * Lyrics are not bundled (copyright) — paste them via Lyrics → Edit → Paste.
+ * ------------------------------------------------------------------ */
+SONGS.push({
+  id: 'the-zephyr-song',
+  title: 'The Zephyr Song',
+  artist: 'Red Hot Chili Peppers',
+  bpm: 118,
+  timeSig: '4/4',
+  beats: 4,
+  steps: 16,
+  patterns: {
+    verse: {
+      HH: 'x-x-x-x-x-x-x-x-',
+      SN: '----X-------X---',
+      BD: 'X-----x-X-x-----',
+    },
+    chorus: {
+      HH: 'x-o-x-o-x-o-x-o-',
+      SN: '----X-------X---',
+      BD: 'X-----x-X-x---x-',
+    },
+    chorusIn: {
+      CR: 'X---------------',
+      HH: '--o-x-o-x-o-x-o-',
+      SN: '----X-------X---',
+      BD: 'X-----x-X-x---x-',
+    },
+    halftime: {
+      HH: 'x-x-x-x-x-x-x-x-',
+      SN: '--------X-------',
+      BD: 'X-----x---x-----',
+    },
+    ride: {
+      RD: 'x-x-x-x-x-x-x-x-',
+      SN: '----X-------X---',
+      BD: 'X-----x-X-x-----',
+    },
+    fill: {
+      HH: 'x-x-x-x-x-x-----',
+      SN: '----X-------xxXX',
+      BD: 'X-----x-X-------',
+    },
+    ending: {
+      CR: 'X---------------',
+      BD: 'X---------------',
+    },
+  },
+  sections: [
+    { name: 'Intro', inst: true, bars: 8, pattern: 'verse', fill: 'fill', chords: 'Am G | Em F' },
+    { name: 'Verse 1', bars: 16, pattern: 'verse', fill: 'fill', chords: 'Am G | Em F' },
+    { name: 'Chorus', bars: 10, pattern: 'chorus', first: 'chorusIn', fill: 'fill', chords: 'D G | A | D G | A | D G | A | D G | A | Am G | Em F' },
+    { name: 'Verse 2', bars: 16, pattern: 'verse', fill: 'fill', chords: 'Am G | Em F' },
+    { name: 'Chorus 2', bars: 10, pattern: 'chorus', first: 'chorusIn', fill: 'fill', chords: 'D G | A | D G | A | D G | A | D G | A | Am G | Em F' },
+    { name: 'Bridge', bars: 8, pattern: 'halftime', fill: 'fill', chords: 'Em | F | Am | G' },
+    { name: 'Interlude', inst: true, bars: 8, pattern: 'ride', fill: 'fill', chords: 'Am G | Em F' },
+    { name: 'Chorus 3', bars: 10, pattern: 'chorus', first: 'chorusIn', fill: 'fill', chords: 'D G | A | D G | A | D G | A | D G | A | Am G | Em F' },
+    { name: 'Chorus 4', bars: 8, pattern: 'chorus', first: 'chorusIn', fill: 'fill', chords: 'D G | A | D G | A | D G | A | D G | A' },
+    { name: 'Outro', bars: 4, pattern: 'chorus', first: 'chorusIn', fill: 'ending', chords: 'D' },
+  ],
+  lyrics: `[Intro]
+(guitar riff)
+(Tap Lyrics → Edit to paste the full lyrics under these headers.)
+
+[Verse 1]
+("Can I get your hand to write on…")
+
+[Chorus]
+("Fly away on my zephyr…")
+
+[Verse 2]
+
+[Bridge]
+(half-time feel)
+
+[Interlude]
+(guitar)
+
+[Outro]
+(last chord)`,
+});
