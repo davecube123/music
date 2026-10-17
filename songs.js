@@ -651,3 +651,88 @@ SONGS.push({
 [Outro]
 (piano)`,
 });
+
+/* ------------------------------------------------------------------
+ * Dark Necessities — Red Hot Chili Peppers (2016)
+ * Main groove from Bonedo's transcription (~90 BPM): one-handed 16th
+ * hi-hat, a busy kick pattern and a single snare on beat 2 — even in the
+ * chorus, which gives the song its floating feel.
+ * Chords (standard tuning, no capo): verse Cm Ab Fm Bb, chorus Ab Fm Cm Bb,
+ * bridge Eb Db Fm Ab Bb.
+ * Lyrics are not bundled (copyright) — paste them via Lyrics → Edit → Paste.
+ * ------------------------------------------------------------------ */
+SONGS.push({
+  id: 'dark-necessities',
+  title: 'Dark Necessities',
+  artist: 'Red Hot Chili Peppers',
+  bpm: 90,
+  timeSig: '4/4',
+  beats: 4,
+  steps: 16,
+  patterns: {
+    tacet: {},
+    groove: {
+      HH: 'xxxxxxxxxxxxxxxx',
+      SN: '----X-----------',
+      BD: 'X--X--xX--X--xX-',
+    },
+    grooveIn: {
+      CR: 'X---------------',
+      HH: '-xxxxxxxxxxxxxxx',
+      SN: '----X-----------',
+      BD: 'X--X--xX--X--xX-',
+    },
+    fill: {
+      HH: 'xxxxxxxx--------',
+      SN: '----X---xxXxXxXX',
+      BD: 'X--X--xX--------',
+    },
+    interlude: {
+      HH: 'x-x-x-x-x-x-x-x-',
+      SN: '--------X-------',
+      BD: 'X------x--X-----',
+    },
+    ending: {
+      CR: 'X---------------',
+      BD: 'X---------------',
+    },
+  },
+  sections: [
+    { name: 'Intro', inst: true, bars: 8, pattern: 'tacet', chords: 'Cm | Ab | Fm | Bb' },
+    { name: 'Intro Groove', inst: true, bars: 4, pattern: 'groove', first: 'grooveIn', chords: 'Cm | Ab | Fm | Bb' },
+    { name: 'Verse 1', bars: 16, pattern: 'groove', fill: 'fill', chords: 'Cm | Ab | Fm | Bb' },
+    { name: 'Chorus', bars: 8, pattern: 'groove', first: 'grooveIn', chords: 'Ab | Fm | Cm | Bb' },
+    { name: 'Verse 2', bars: 16, pattern: 'groove', fill: 'fill', chords: 'Cm | Ab | Fm | Bb' },
+    { name: 'Chorus 2', bars: 8, pattern: 'groove', first: 'grooveIn', fill: 'fill', chords: 'Ab | Fm | Cm | Bb' },
+    { name: 'Piano Interlude', inst: true, bars: 8, pattern: 'interlude', fill: 'fill', chords: 'Cm | Ab | Fm | Bb' },
+    { name: 'Bridge', bars: 8, pattern: 'groove', first: 'grooveIn', fill: 'fill', chords: 'Eb | Db | Fm | Ab Bb' },
+    { name: 'Guitar Solo', inst: true, bars: 8, pattern: 'groove', first: 'grooveIn', fill: 'fill', chords: 'Cm | Ab | Fm | Bb' },
+    { name: 'Chorus 3', bars: 8, pattern: 'groove', first: 'grooveIn', chords: 'Ab | Fm | Cm | Bb' },
+    { name: 'Outro', bars: 16, pattern: 'groove', first: 'grooveIn', fill: 'ending', chords: 'Cm | Ab | Fm | Bb' },
+  ],
+  lyrics: `[Intro]
+(slap bass — no drums yet)
+(Tap Lyrics → Edit to paste the full lyrics under these headers.)
+
+[Intro Groove]
+(drums come in)
+
+[Verse 1]
+("Coming out to the light of day…")
+
+[Chorus]
+("Dark necessities…")
+
+[Verse 2]
+
+[Piano Interlude]
+(piano, lighter half-time feel)
+
+[Bridge]
+
+[Guitar Solo]
+(guitar solo)
+
+[Outro]
+(jam to the end)`,
+});
