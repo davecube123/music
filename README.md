@@ -1,5 +1,7 @@
 # Backbeat: song drum metronome
 
+> This repo also contains **[Breathe](breathe/)**, a breathing-pattern app with audio cues, music and a journal. It's served at `/breathe/`.
+
 A metronome that plays a song's actual drum pattern, section by section, at whatever tempo you set. It shows the song's lyrics as it plays.
 
 It's a **Progressive Web App (PWA)**: plain HTML/CSS/JS with no build step. You can install it to your phone's home screen and it works offline.
