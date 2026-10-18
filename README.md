@@ -1,6 +1,6 @@
 # Backbeat: song drum metronome
 
-> This repo also contains **[Breathe](breathe/)**, a breathing-pattern app with audio cues, music and a journal. It's served at `/breathe/`.
+> Looking for **Breathe**, the breathing app? It has its own repo: [davecube123/breath](https://github.com/davecube123/breath).
 
 A metronome that plays a song's actual drum pattern, section by section, at whatever tempo you set. It shows the song's lyrics as it plays.
 
