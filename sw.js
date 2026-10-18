@@ -1,5 +1,5 @@
 // Network-first so new songs show up as soon as you're online; cache keeps it working offline.
-const CACHE = 'backbeat-v10';
+const CACHE = 'backbeat-v11';
 const SHELL = ['./', 'index.html', 'styles.css', 'app.js', 'songs.js', 'manifest.webmanifest',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png'];
 
@@ -15,9 +15,7 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   const req = e.request;
-  const url = new URL(req.url);
-  if (req.method !== 'GET' || url.origin !== location.origin) return;
-  if (url.pathname.includes('/breathe/')) return; // Breathe is its own app with its own worker
+  if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
   e.respondWith(
     fetch(req)
       .then((res) => {

@@ -1,7 +1,5 @@
 # Backbeat: song drum metronome
 
-> Looking for **Breathe**, the breathing app? It has its own repo: [davecube123/breath](https://github.com/davecube123/breath).
-
 A metronome that plays a song's actual drum pattern, section by section, at whatever tempo you set. It shows the song's lyrics as it plays.
 
 It's a **Progressive Web App (PWA)**: plain HTML/CSS/JS with no build step. You can install it to your phone's home screen and it works offline.
