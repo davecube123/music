@@ -824,3 +824,81 @@ SONGS.push({
 [Outro]
 (last chord)`,
 });
+
+/* ------------------------------------------------------------------
+ * This Love — Maroon 5 (2002)
+ * ~95 BPM, 4/4, C minor. No published drum transcription found, so the
+ * grooves are an approximation of the record's feel: funky 16th hi-hat with
+ * soft in-between notes, syncopated kick, backbeat with snare ghost notes.
+ * Chords (standard tuning, no capo): verse/riff Cm7 Fm7 G7; chorus
+ * Cm Fm Bb Eb … Cm F Ab G; bridge Fm Ebmaj7 G7 Cm.
+ * Lyrics are not bundled (copyright) — paste them via Lyrics → Edit → Paste.
+ * ------------------------------------------------------------------ */
+SONGS.push({
+  id: 'this-love',
+  title: 'This Love',
+  artist: 'Maroon 5',
+  bpm: 95,
+  timeSig: '4/4',
+  beats: 4,
+  steps: 16,
+  patterns: {
+    verse: {
+      HH: 'xgxgxgxgxgxgxgxg',
+      SN: '----X--g-g--X--g',
+      BD: 'X--x--x---X---x-',
+    },
+    chorus: {
+      HH: 'xgxgxgxgxgxgxgo-',
+      SN: '----X--g-g--X---',
+      BD: 'X--x--x-X-x---x-',
+    },
+    chorusIn: {
+      CR: 'X---------------',
+      HH: '--xgxgxgxgxgxgo-',
+      SN: '----X--g-g--X---',
+      BD: 'X--x--x-X-x---x-',
+    },
+    bridge: {
+      HH: 'x-x-x-x-x-x-x-x-',
+      SS: '----x-------x---',
+      BD: 'X-------X-x-----',
+    },
+    fill: {
+      HH: 'xgxgxgxg--------',
+      SN: '----X---xxxxXxXX',
+      BD: 'X--x--x---------',
+    },
+    ending: {
+      CR: 'X---------------',
+      BD: 'X---------------',
+    },
+  },
+  sections: [
+    { name: 'Intro', inst: true, bars: 8, pattern: 'verse', fill: 'fill', chords: 'Cm7 | Fm7 G7' },
+    { name: 'Verse 1', bars: 8, pattern: 'verse', fill: 'fill', chords: 'Cm7 | Fm7 G7' },
+    { name: 'Chorus', bars: 10, pattern: 'chorus', first: 'chorusIn', fill: 'fill', chords: 'Cm Fm | Bb Eb | Cm Fm | Bb Eb | Cm Fm | Bb Eb | Cm F | Ab G | Cm Fm | G7' },
+    { name: 'Verse 2', bars: 8, pattern: 'verse', fill: 'fill', chords: 'Cm7 | Fm7 G7' },
+    { name: 'Chorus 2', bars: 10, pattern: 'chorus', first: 'chorusIn', fill: 'fill', chords: 'Cm Fm | Bb Eb | Cm Fm | Bb Eb | Cm Fm | Bb Eb | Cm F | Ab G | Cm Fm | G7' },
+    { name: 'Bridge', bars: 8, pattern: 'bridge', fill: 'fill', chords: 'Fm | Ebmaj7 | G7 | Cm | Fm | Ebmaj7 | G | G7' },
+    { name: 'Chorus 3', bars: 8, pattern: 'chorus', first: 'chorusIn', chords: 'Cm Fm | Bb Eb | Cm Fm | Bb Eb | Cm Fm | Bb Eb | Cm F | Ab G' },
+    { name: 'Chorus 4', bars: 8, pattern: 'chorus', first: 'chorusIn', chords: 'Cm Fm | Bb Eb | Cm Fm | Bb Eb | Cm Fm | Bb Eb | Cm F | Ab G' },
+    { name: 'Outro', bars: 8, pattern: 'chorus', first: 'chorusIn', fill: 'ending', chords: 'Cm Fm | Bb Eb | Cm Fm | Bb Eb | Cm Fm | Bb Eb | Cm F | Ab G' },
+  ],
+  lyrics: `[Intro]
+(piano / guitar riff)
+(Tap Lyrics → Edit to paste the full lyrics under these headers.)
+
+[Verse 1]
+("I was so high…")
+
+[Chorus]
+("This love has taken its toll…")
+
+[Verse 2]
+
+[Bridge]
+
+[Outro]
+(chorus repeats to the end)`,
+});
