@@ -815,6 +815,7 @@
         <span class="song-tags"><b>${local.bpm || s.bpm}</b> bpm<br>${esc(s.timeSig || '4/4')}</span>
       </button></li>`;
     }).join('') : '<li class="empty">No songs match.</li>';
+    $('#songCount').textContent = `${SONGS.length} songs`;
     $$('.song-card').forEach((b) => { b.onclick = () => { location.hash = '#/song/' + encodeURIComponent(b.dataset.id); }; });
   }
 
@@ -1032,6 +1033,21 @@
   requestAnimationFrame(frame);
 
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    // When an updated version takes over, reload once so new songs appear right away
+    // (not on first install, and never in the middle of playing).
+    const hadController = !!navigator.serviceWorker.controller;
+    let reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!hadController || reloading) return;
+      if (P.playing) { toast('Update ready, it loads when you stop'); return; }
+      reloading = true;
+      location.reload();
+    });
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
+      .then((reg) => {
+        reg.update().catch(() => {});
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
+      })
+      .catch(() => {});
   }
 })();
