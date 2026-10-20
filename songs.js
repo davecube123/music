@@ -902,3 +902,80 @@ SONGS.push({
 [Outro]
 (chorus repeats to the end)`,
 });
+
+/* ------------------------------------------------------------------
+ * Flashed Junk Mind — Milky Chance (2013)
+ * ~118 BPM, 4/4, key of B. No published drum transcription found, so the
+ * beat is an approximation of the record's laid-back feel: off-beat hi-hat
+ * that locks with the off-beat guitar in the verses, fuller hats in the
+ * chorus, backbeat on 2 & 4.
+ * Chords (standard tuning, no capo): riff G#m F# B E · G#m F# B;
+ * verse/chorus B G#m F# B · E G#m F# B (verse picked off-beat, chorus strummed).
+ * Lyrics are not bundled (copyright) — paste them via Lyrics → Edit → Paste.
+ * ------------------------------------------------------------------ */
+SONGS.push({
+  id: 'flashed-junk-mind',
+  title: 'Flashed Junk Mind',
+  artist: 'Milky Chance',
+  bpm: 118,
+  timeSig: '4/4',
+  beats: 4,
+  steps: 16,
+  patterns: {
+    intro: {
+      HH: '--x---x---x---x-',
+      BD: 'X-------X-------',
+    },
+    verse: {
+      HH: '--x---x---x---x-',
+      SN: '----X-------X---',
+      BD: 'X-------X-x-----',
+    },
+    chorus: {
+      HH: 'x-x-x-x-x-x-x-o-',
+      SN: '----X-------X---',
+      BD: 'X-----x-X-x-----',
+    },
+    chorusIn: {
+      CR: 'X---------------',
+      HH: '--x-x-x-x-x-x-o-',
+      SN: '----X-------X---',
+      BD: 'X-----x-X-x-----',
+    },
+    fill: {
+      HH: 'x-x-x-x---------',
+      SN: '----X---x-x-xxXX',
+      BD: 'X-------X-------',
+    },
+    ending: {
+      CR: 'X---------------',
+      BD: 'X---------------',
+    },
+  },
+  sections: [
+    { name: 'Intro', inst: true, bars: 8, pattern: 'intro', fill: 'fill', chords: 'G#m F# | B E | G#m F# | B' },
+    { name: 'Verse 1', bars: 16, pattern: 'verse', fill: 'fill', chords: 'B G#m | F# B | E G#m | F# B' },
+    { name: 'Chorus', bars: 16, pattern: 'chorus', first: 'chorusIn', fill: 'fill', chords: 'B G#m | F# B | E G#m | F# B' },
+    { name: 'Interlude', inst: true, bars: 8, pattern: 'verse', fill: 'fill', chords: 'G#m F# | B E | G#m F# | B' },
+    { name: 'Verse 2', bars: 16, pattern: 'verse', fill: 'fill', chords: 'B G#m | F# B | E G#m | F# B' },
+    { name: 'Chorus 2', bars: 16, pattern: 'chorus', first: 'chorusIn', fill: 'fill', chords: 'B G#m | F# B | E G#m | F# B' },
+    { name: 'Interlude 2', inst: true, bars: 16, pattern: 'chorus', first: 'chorusIn', fill: 'fill', chords: 'G#m F# | B E | G#m F# | B' },
+    { name: 'Outro', inst: true, bars: 12, pattern: 'verse', fill: 'ending', chords: 'G#m F# | B E | G#m F# | B' },
+  ],
+  lyrics: `[Intro]
+(guitar riff)
+(Tap Lyrics → Edit to paste the full lyrics under these headers.)
+
+[Verse 1]
+("We were young souls…")
+
+[Chorus]
+
+[Interlude]
+(riff)
+
+[Verse 2]
+
+[Outro]
+(riff — picked, then strummed)`,
+});
