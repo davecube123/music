@@ -17,6 +17,8 @@
  *   lyrics    optional text. Headers in [brackets] are matched to section names.
  *             A header like [Chorus] also matches "Chorus 2", so a chorus can be written once.
  *   capo      capo fret; chords are written as the shapes you'd play with it (the cue sounds at pitch).
+ *   tuning, transpose  for down-tuned songs: a label (e.g. 'Tune down 1 step') and the shift in
+ *             semitones (e.g. -2). Shapes stay as fingered; the cue sounds at the record's pitch.
  *   (section) chords: bars split by '|', chords in a bar share it evenly ('Am G | C' = 2 beats each,
  *             then a full bar of C). Cycles if shorter than the section. 'N.C.' = no chord.
  *             A soft chord cue sounds on each change; the chord is shown on screen.
@@ -978,4 +980,97 @@ SONGS.push({
 
 [Outro]
 (riff — picked, then strummed)`,
+});
+
+/* ------------------------------------------------------------------
+ * Thinking Out Loud — Ed Sheeran (2014)
+ * ~79 BPM, 4/4 with a swung (triplet) feel, so the grid is 12 steps per bar.
+ * Groove is an approximation of the record's laid-back feel: hi-hat foot on
+ * the swung upbeats, cross-stick in the verses, backbeat and shuffle hi-hat
+ * in the choruses.
+ * Chords as D shapes with the guitar tuned down a whole step (sounds in C).
+ * Lyrics are not bundled (copyright) — paste them via Lyrics → Edit → Paste.
+ * ------------------------------------------------------------------ */
+SONGS.push({
+  id: 'thinking-out-loud',
+  title: 'Thinking Out Loud',
+  artist: 'Ed Sheeran',
+  bpm: 79,
+  tuning: 'Tune down 1 step',
+  transpose: -2,
+  timeSig: '4/4 swing',
+  beats: 4,
+  steps: 12,
+  patterns: {
+    intro: {
+      HP: '--x--x--x--x',
+    },
+    verse: {
+      HP: '--x--x--x--x',
+      SS: '---x-----x--',
+      BD: 'X-----X-x---',
+    },
+    pre: {
+      HH: 'x--x--x--x--',
+      HP: '--x--x--x--x',
+      SN: '---x-----x--',
+      BD: 'X-----X-x---',
+    },
+    chorus: {
+      HH: 'x-xx-xx-xx-x',
+      SN: '---X-----X--',
+      BD: 'X-----X-x---',
+    },
+    chorusIn: {
+      CR: 'X-----------',
+      HH: '--xx-xx-xx-x',
+      SN: '---X-----X--',
+      BD: 'X-----X-x---',
+    },
+    solo: {
+      RD: 'x-xx-xx-xx-x',
+      SN: '---X-----X--',
+      BD: 'X-----X-x---',
+    },
+    fill: {
+      HH: 'x-xx-x------',
+      SN: '---X--xxxXxX',
+      BD: 'X-----------',
+    },
+    ending: {
+      CR: 'X-----------',
+      BD: 'X-----------',
+    },
+  },
+  sections: [
+    { name: 'Intro', inst: true, bars: 4, pattern: 'intro', chords: 'D D/F# | G A' },
+    { name: 'Verse 1', bars: 16, pattern: 'verse', chords: 'D D/F# | G A' },
+    { name: 'Pre-Chorus', bars: 8, pattern: 'pre', fill: 'fill', chords: 'Em | A7 D | Em | A7 | Em | A7 Bm | Em | A7' },
+    { name: 'Chorus', bars: 12, pattern: 'chorus', first: 'chorusIn', chords: 'D D/F# | G A | D D/F# | G A | D D/F# | G A | D D/F# | G A | Bm A | G | D/F# Em | A7 D' },
+    { name: 'Verse 2', bars: 8, pattern: 'verse', chords: 'D D/F# | G A' },
+    { name: 'Pre-Chorus 2', bars: 8, pattern: 'pre', fill: 'fill', chords: 'Em | A7 D | Em | A7 | Em | A7 Bm | Em | A7' },
+    { name: 'Chorus 2', bars: 12, pattern: 'chorus', first: 'chorusIn', fill: 'fill', chords: 'D D/F# | G A | D D/F# | G A | D D/F# | G A | D D/F# | G A | Bm A | G | D/F# Em | A7 D' },
+    { name: 'Guitar Solo', inst: true, bars: 8, pattern: 'solo', first: 'chorusIn', fill: 'fill', chords: 'D D/F# | G A' },
+    { name: 'Chorus 3', bars: 12, pattern: 'chorus', first: 'chorusIn', chords: 'D D/F# | G A | D D/F# | G A | D D/F# | G A | D D/F# | G A | Bm A | G | D/F# Em | A7 D' },
+    { name: 'Outro', inst: true, bars: 4, pattern: 'verse', fill: 'ending', chords: 'D D/F# | G A | D D/F# | D' },
+  ],
+  lyrics: `[Intro]
+(guitar)
+(Tap Lyrics → Edit to paste the full lyrics under these headers.)
+
+[Verse 1]
+("When your legs don't work…")
+
+[Pre-Chorus]
+
+[Chorus]
+("So honey now…")
+
+[Verse 2]
+
+[Guitar Solo]
+(guitar solo)
+
+[Outro]
+(last chord)`,
 });

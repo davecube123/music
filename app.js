@@ -70,6 +70,9 @@
     return {
       raw, id: raw.id, title: raw.title, artist: raw.artist || '', bpm: raw.bpm, beats: raw.beats || 4,
       timeSig: raw.timeSig || '4/4', patterns, timeline, sections, capo: raw.capo || 0,
+      // semitones from the shapes you finger to the pitch you hear (capo up, down-tuning negative)
+      shift: (raw.capo || 0) + (raw.transpose || 0),
+      tuneLabel: raw.capo ? `Capo ${raw.capo}` : (raw.tuning || ''),
       hasChords: raw.sections.some((x) => x.chords),
       drums: DRUMS.map((d) => d[0]).filter((k) => used.has(k)),
       lyrics: local.lyrics != null ? local.lyrics : (raw.lyrics || ''),
@@ -245,7 +248,7 @@
     const c = isRest(name) ? null : chordTones(name);
     if (!c) return;
     const hz = (midi) => 440 * Math.pow(2, (midi - 69) / 12);
-    const base = 48 + ((c.root + song.capo) % 12); // root in the C3–B3 range
+    const base = 48 + (((c.root + song.shift) % 12) + 12) % 12; // root in the C3–B3 range
     const tone = filt('lowpass', 1600);
     tone.connect(cueBus);
     const voice = (midi, type, level) => {
@@ -533,7 +536,7 @@
     D.chartBars = [];
     const seen = [];
     song.timeline.forEach((tl) => (tl.chords || []).forEach((c) => { if (!isRest(c) && !seen.includes(c)) seen.push(c); }));
-    $('#shapesCapo').textContent = song.capo ? `· capo ${song.capo}` : '';
+    $('#shapesCapo').textContent = song.tuneLabel ? `· ${song.tuneLabel.toLowerCase()}` : '';
     $('#shapes').innerHTML = seen.map((c) => `<div class="shape" data-chord="${esc(c)}"><b>${esc(c)}</b><div class="diagram">${chordSVG(c)}</div></div>`).join('');
     const chart = $('#chart');
     chart.innerHTML = '';
@@ -826,7 +829,7 @@
     D.bar = -99; D.grid = null; D.gridSteps = 0; D.chord = D.next = undefined;
     ['#nowChord', '#nowChips', '#chordsTab'].forEach((id) => { $(id).hidden = !song.hasChords; });
     $('#nextBox').hidden = true;
-    $('#capoLabel').textContent = song.capo ? `Capo ${song.capo}` : '';
+    $('#capoLabel').textContent = song.tuneLabel;
     $('#songTitle').textContent = song.title;
     $('#songMeta').textContent = [song.artist, song.timeSig, `${song.timeline.length} bars`].filter(Boolean).join(' · ');
     $('#origBpm').textContent = song.bpm;
