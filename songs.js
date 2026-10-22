@@ -1074,3 +1074,178 @@ SONGS.push({
 [Outro]
 (last chord)`,
 });
+
+/* ------------------------------------------------------------------
+ * Viva la Vida — Coldplay (2008)
+ * ~138 BPM, 4/4, sounds in A-flat. Capo 1, shapes C D G Em (one per bar)
+ * nearly all the way through; "Bm" on the "I can't explain" lines.
+ * No published drum part found, so the drums are an approximation of the
+ * record's marching feel: no drums under the opening strings, a big bass drum
+ * that grows from beats 1 & 3 to every beat, a bell-like ride on the
+ * downbeat in the chorus, and a full backbeat in the "oh-oh-oh" section.
+ * Lyrics are not bundled (copyright) — paste them via Lyrics → Edit → Paste.
+ * ------------------------------------------------------------------ */
+SONGS.push({
+  id: 'viva-la-vida',
+  title: 'Viva la Vida',
+  artist: 'Coldplay',
+  bpm: 138,
+  capo: 1,
+  timeSig: '4/4',
+  beats: 4,
+  steps: 16,
+  patterns: {
+    tacet: {},
+    pulse: {
+      BD: 'X-------x-------',
+    },
+    march: {
+      BD: 'X---x---X---x---',
+      SS: '----x-------x---',
+    },
+    chorus: {
+      RD: 'o---------------',
+      BD: 'X---X---X---X---',
+      SN: '----x-------x---',
+    },
+    chorusIn: {
+      CR: 'X---------------',
+      BD: 'X---X---X---X---',
+      SN: '----x-------x---',
+    },
+    big: {
+      HH: 'x-x-x-x-x-x-x-x-',
+      BD: 'X---X---X---X---',
+      SN: '----X-------X---',
+    },
+    bigIn: {
+      CR: 'X---------------',
+      HH: '--x-x-x-x-x-x-x-',
+      BD: 'X---X---X---X---',
+      SN: '----X-------X---',
+    },
+    roll: {
+      BD: 'X---X---X---X---',
+      SN: '--------xxxxXXXX',
+    },
+    ending: {
+      CR: 'X---------------',
+      BD: 'X---------------',
+    },
+  },
+  sections: [
+    { name: 'Intro', inst: true, bars: 8, pattern: 'tacet', chords: 'C | D | G | Em' },
+    { name: 'Verse 1', bars: 16, pattern: 'pulse', chords: 'C | D | G | Em' },
+    { name: 'Verse 2', bars: 16, pattern: 'march', fill: 'roll', chords: 'C | D | G | Em' },
+    { name: 'Chorus', bars: 16, pattern: 'chorus', first: 'chorusIn', chords: 'C | D | G | Em | C | D | G | Em | C | D | G | Em | C | D | Bm | Em' },
+    { name: 'Verse 3', bars: 16, pattern: 'march', fill: 'roll', chords: 'C | D | G | Em' },
+    { name: 'Chorus 2', bars: 16, pattern: 'chorus', first: 'chorusIn', fill: 'roll', chords: 'C | D | G | Em | C | D | G | Em | C | D | G | Em | C | D | Bm | Em' },
+    { name: 'Bridge', bars: 16, pattern: 'big', first: 'bigIn', chords: 'C | D | G | Em' },
+    { name: 'Breakdown', bars: 8, pattern: 'pulse', fill: 'roll', chords: 'C | D | G | Em' },
+    { name: 'Chorus 3', bars: 16, pattern: 'big', first: 'bigIn', chords: 'C | D | G | Em | C | D | G | Em | C | D | G | Em | C | D | Bm | Em' },
+    { name: 'Outro', inst: true, bars: 8, pattern: 'tacet', fill: 'ending', chords: 'C | D | G | Em' },
+  ],
+  lyrics: `[Intro]
+(strings — no drums)
+(Tap Lyrics → Edit to paste the full lyrics under these headers.)
+
+[Verse 1]
+("I used to rule the world…")
+
+[Verse 2]
+
+[Chorus]
+("I hear Jerusalem bells a-ringing…")
+
+[Verse 3]
+
+[Bridge]
+("Oh-oh-oh…" — full band)
+
+[Breakdown]
+(quiet)
+
+[Outro]
+(strings)`,
+});
+
+/* ------------------------------------------------------------------
+ * Green Eyes — Coldplay (2002)
+ * ~128 BPM, 4/4, sounds in A. Capo 2, G shapes: verse G D Am, chorus
+ * Am C G D. No published drum part found, so the groove is an approximation
+ * of the record's gentle feel: hi-hat and cross-stick in the verses, a soft
+ * snare backbeat in the choruses.
+ * Lyrics are not bundled (copyright) — paste them via Lyrics → Edit → Paste.
+ * ------------------------------------------------------------------ */
+SONGS.push({
+  id: 'green-eyes',
+  title: 'Green Eyes',
+  artist: 'Coldplay',
+  bpm: 128,
+  capo: 2,
+  timeSig: '4/4',
+  beats: 4,
+  steps: 16,
+  patterns: {
+    intro: {
+      HH: 'x-x-x-x-x-x-x-x-',
+    },
+    verse: {
+      HH: 'x-x-x-x-x-x-x-x-',
+      SS: '----x-------x---',
+      BD: 'X-------X-------',
+    },
+    chorus: {
+      HH: 'x-x-x-x-x-x-x-x-',
+      SN: '----x-------x---',
+      BD: 'X-----x-X-------',
+    },
+    chorusIn: {
+      CR: 'x---------------',
+      HH: '--x-x-x-x-x-x-x-',
+      SN: '----x-------x---',
+      BD: 'X-----x-X-------',
+    },
+    fill: {
+      HH: 'x-x-x-x-x-x-----',
+      SN: '------------xxxx',
+      BD: 'X-------X-------',
+    },
+    ending: {
+      CR: 'x---------------',
+      BD: 'X---------------',
+    },
+  },
+  sections: [
+    { name: 'Intro', inst: true, bars: 8, pattern: 'intro', chords: 'G | D | Am | Am' },
+    { name: 'Verse 1', bars: 16, pattern: 'verse', chords: 'G | D | Am | Am' },
+    { name: 'Verse 2', bars: 16, pattern: 'verse', fill: 'fill', chords: 'G | D | Am | Am' },
+    { name: 'Chorus', bars: 8, pattern: 'chorus', first: 'chorusIn', fill: 'fill', chords: 'Am | C | G | D' },
+    { name: 'Interlude', inst: true, bars: 8, pattern: 'verse', chords: 'G | D | Am | Am' },
+    { name: 'Verse 3', bars: 16, pattern: 'verse', fill: 'fill', chords: 'G | D | Am | Am' },
+    { name: 'Chorus 2', bars: 8, pattern: 'chorus', first: 'chorusIn', fill: 'fill', chords: 'Am | C | G | D' },
+    { name: 'Verse 4', bars: 16, pattern: 'chorus', first: 'chorusIn', chords: 'G | D | Am | Am' },
+    { name: 'Outro', bars: 16, pattern: 'verse', fill: 'ending', chords: 'G | D | Am | Am' },
+  ],
+  lyrics: `[Intro]
+(acoustic guitar)
+(Tap Lyrics → Edit to paste the full lyrics under these headers.)
+
+[Verse 1]
+("Honey, you are a rock…")
+
+[Verse 2]
+
+[Chorus]
+("And if you were to ask me…")
+
+[Interlude]
+(guitar)
+
+[Verse 3]
+
+[Verse 4]
+
+[Outro]
+(to the end)`,
+});
