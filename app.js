@@ -18,7 +18,7 @@
     del(k) { try { localStorage.removeItem(k); } catch { /* ignore */ } },
   };
   const prefs = Object.assign(
-    { click: true, countIn: true, cue: true, drumVol: 0.9, clickVol: 0.55, cueVol: 0.6, lyricSize: 19, tab: 'lyrics' },
+    { click: true, countIn: true, cue: true, strum: true, drumVol: 0.9, clickVol: 0.55, cueVol: 0.6, strumVol: 0.7, lyricSize: 19, tab: 'lyrics' },
     store.get('bb.prefs', {}),
   );
   const savePrefs = () => store.set('bb.prefs', prefs);
@@ -63,7 +63,9 @@
         if (!patterns[pn]) { console.warn('Unknown pattern', pn, 'in', raw.title); patterns[pn] = { name: pn, steps, bars: 1, tracks: {} }; }
         const cb = s.chords ? s.chords.split('|') : null;
         const chords = cb ? cb[b % cb.length].trim().split(/\s+/).filter(Boolean) : null;
-        timeline.push({ si, b, pn, pb, chords: chords && chords.length ? chords : null });
+        const strum = clean(s.strum != null ? s.strum : raw.strum || '');
+        const strumBeats = s.strumBeats || raw.strumBeats || raw.beats || 4;
+        timeline.push({ si, b, pn, pb, chords: chords && chords.length ? chords : null, strum: strum || null, strumBeats });
       }
       return { name: s.name, bars: nBars, chords: s.chords || '', inst: !!s.inst, rate: s.bpm ? s.bpm / raw.bpm : 1, start, end: timeline.length - 1, color: secColor(s.name) };
     });
@@ -77,6 +79,7 @@
       tuneLabel: raw.capo ? `Capo ${raw.capo}` : (raw.tuning || ''),
       hasChords: raw.sections.some((x) => x.chords),
       mixed: raw.sections.some((x) => x.seq),
+      hasStrum: !!raw.strum || raw.sections.some((x) => x.strum),
       drums: DRUMS.map((d) => d[0]).filter((k) => used.has(k)),
       lyrics: local.lyrics != null ? local.lyrics : (raw.lyrics || ''),
     };
@@ -94,7 +97,7 @@
   }
 
   /* ---------------- audio engine ---------------- */
-  let ctx, drumBus, clickBus, cueBus, noiseBuf, openHat = null;
+  let ctx, drumBus, clickBus, cueBus, strumBus, noiseBuf, openHat = null;
   const METAL = [263, 400, 421, 474, 587, 845];
 
   function initAudio() {
@@ -107,6 +110,7 @@
     drumBus = ctx.createGain(); drumBus.connect(comp);
     clickBus = ctx.createGain(); clickBus.connect(ctx.destination);
     cueBus = ctx.createGain(); cueBus.connect(ctx.destination);
+    strumBus = ctx.createGain(); strumBus.connect(comp);
     applyVolumes();
     const len = ctx.sampleRate * 3;
     noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
@@ -118,6 +122,7 @@
     drumBus.gain.value = prefs.drumVol;
     clickBus.gain.value = prefs.clickVol;
     cueBus.gain.value = prefs.cueVol;
+    strumBus.gain.value = prefs.strumVol;
   }
 
   function env(t, peak, decay, dest, attack = 0.001) {
@@ -271,6 +276,37 @@
     c.intervals.slice(1).forEach((iv) => voice(base + 12 + iv, 'sine', 0.06));
   }
   function cueSilence(t) { if (ctx) cueRelease(t); }
+
+  /* ---------------- strum track (rhythm only, no pitch) ---------------- */
+  // A strummed guitar's rhythm without its notes: filtered noise swept across the
+  // "strings" — downstrokes sweep up and sound fuller, upstrokes sweep down and lighter.
+  function strumSound(t, ch) {
+    const soft = ch === 'd' || ch === 'u';
+    const v = soft ? 0.55 : 1;
+    if (ch === 'D' || ch === 'd' || ch === 'U' || ch === 'u') {
+      const down = ch === 'D' || ch === 'd';
+      const dur = down ? 0.16 : 0.11;
+      const bp = ctx.createBiquadFilter();
+      bp.type = 'bandpass'; bp.Q.value = 1.1;
+      bp.frequency.setValueAtTime(down ? 650 : 2600, t);
+      bp.frequency.exponentialRampToValueAtTime(down ? 2600 : 1300, t + 0.03);
+      noise(t, dur).connect(bp).connect(env(t, v * (down ? 0.55 : 0.32), dur, strumBus, 0.004));
+      if (down) osc('triangle', t, 140, 110, 0.05, 0.06).connect(env(t, v * 0.12, 0.06, strumBus));
+    } else if (ch === 'x') { // muted chuck
+      noise(t, 0.04).connect(filt('bandpass', 1800, 0.9)).connect(env(t, 0.45, 0.035, strumBus));
+      osc('sine', t, 160, 90, 0.03, 0.04).connect(env(t, 0.15, 0.035, strumBus));
+    } else if (ch === 'p') { // single picked note, as a soft tick
+      noise(t, 0.05).connect(filt('bandpass', 2400, 5)).connect(env(t, 0.32, 0.05, strumBus));
+    }
+  }
+  const STRUM_GLYPH = { D: '↓', d: '↓', U: '↑', u: '↑', x: '✕', p: '•', '-': '' };
+  // events in a bar: the pattern covers `strumBeats` beats and repeats to fill the bar's meter
+  function strumEvents(bar) {
+    const tl = song.timeline[bar];
+    if (!tl || !tl.strum) return [];
+    const L = tl.strum.length, perBeat = L / tl.strumBeats, n = Math.round(barBeats(bar) * perBeat);
+    return Array.from({ length: n }, (_, g) => tl.strum[g % L]);
+  }
 
   /* ---------------- chord shapes (guitar diagrams) ---------------- */
   // Frets from low E to high e; x = muted. Shapes are as played (relative to the capo).
@@ -445,6 +481,12 @@
     const tl = song.timeline[bar];
     const p = pat(tl.pn);
     const i = tl.pb * p.steps + step;
+    if (prefs.strum && tl.strum) {
+      const ev = strumEvents(bar), E = ev.length;
+      for (let g = Math.ceil(step * E / p.steps - 1e-9); g < (step + 1) * E / p.steps - 1e-9; g++) {
+        if (ev[g] && ev[g] !== '-') strumSound(t + (g * p.steps / E - step) * stepDur(bar), ev[g]);
+      }
+    }
     if (prefs.cue && song.hasChords) {
       // sound a cue where the chord changes (and at the top of each section), on the exact step
       const n = tl.chords ? tl.chords.length : 1;
@@ -512,6 +554,17 @@
     const fill = $$('#sections .fill')[tl.si];
     if (fill) fill.style.width = (step < 0 && tl.b === 0 ? 0 : prog * 100) + '%';
     if (D.grid) D.grid.forEach((row) => row.forEach((c, i) => c.classList.toggle('now', i === step)));
+    if (song.hasStrum) {
+      if (barChanged) {
+        const ev = strumEvents(bar);
+        $('#strumStrip').innerHTML = ev.map((c, i) => `<i class="${c === 'D' || c === 'U' ? 'hard' : ''}${i % (ev.length / barBeats(bar)) === 0 ? ' beat' : ''}">${STRUM_GLYPH[c] || ''}</i>`).join('');
+        $('#strumStrip').classList.toggle('empty', !ev.length);
+        D.strumCells = $$('#strumStrip i');
+      }
+      const n = D.strumCells.length;
+      const cur = step >= 0 && n ? Math.floor((step / p.steps) * n + 1e-9) : -1;
+      if (cur !== D.strumCur) { D.strumCells.forEach((el, i) => el.classList.toggle('on', i === cur)); D.strumCur = cur; }
+    }
     updateLyrics(tl.si, prog);
     if (song.hasChords) {
       const frac = Math.max(step, 0) / p.steps;
@@ -837,6 +890,7 @@
     S.pos = 0; S.loop = false; S.edit = false;
     D.bar = -99; D.grid = null; D.gridSteps = 0; D.chord = D.next = undefined;
     ['#nowChord', '#nowChips', '#chordsTab'].forEach((id) => { $(id).hidden = !song.hasChords; });
+    $('#strumRow').hidden = !song.hasStrum; $('#strumBtn').hidden = !song.hasStrum; D.strumCells = []; D.strumCur = -2;
     $('#nextBox').hidden = true;
     $('#capoLabel').textContent = song.tuneLabel;
     $('#songTitle').textContent = song.title;
@@ -919,6 +973,11 @@
       const b = P.playing ? D.bar : S.pos;
       if (b >= 0) toast(S.loop ? `Looping ${song.sections[song.timeline[b].si].name}` : 'Loop off');
     };
+    const strumBtn = $('#strumBtn');
+    setToggle(strumBtn, prefs.strum);
+    strumBtn.onclick = () => { prefs.strum = !prefs.strum; setToggle(strumBtn, prefs.strum); savePrefs(); toast(prefs.strum ? 'Strum track on' : 'Strum track off'); };
+    $('#strumVol').value = prefs.strumVol;
+    $('#strumVol').oninput = (e) => { prefs.strumVol = +e.target.value; applyVolumes(); savePrefs(); };
     const cueBtn = $('#cueBtn');
     setToggle(cueBtn, prefs.cue);
     cueBtn.onclick = () => {
