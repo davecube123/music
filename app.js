@@ -37,11 +37,11 @@
       const tracks = {};
       let len = steps;
       for (const [k, v] of Object.entries(p)) {
-        if (k === 'steps') continue;
+        if (k === 'steps' || k === 'beats') continue;
         tracks[k] = clean(v);
         len = Math.max(len, tracks[k].length);
       }
-      out[name] = { name, steps, bars: Math.ceil(len / steps), tracks };
+      out[name] = { name, steps, beats: p.beats || 0, bars: Math.ceil(len / steps), tracks };
     }
     return out;
   }
@@ -53,17 +53,19 @@
     const timeline = [];
     const sections = raw.sections.map((s, si) => {
       const start = timeline.length;
-      for (let b = 0; b < s.bars; b++) {
-        let pn = s.pattern;
+      const seq = s.seq ? s.seq.trim().split(/\s+/) : null;
+      const nBars = seq ? seq.length : s.bars;
+      for (let b = 0; b < nBars; b++) {
+        let pn = seq ? seq[b] : s.pattern;
         let pb = b % ((patterns[pn] && patterns[pn].bars) || 1);
         if (b === 0 && s.first) { pn = s.first; pb = 0; }
-        if (b === s.bars - 1 && s.fill) { pn = s.fill; pb = 0; }
+        if (b === nBars - 1 && s.fill) { pn = s.fill; pb = 0; }
         if (!patterns[pn]) { console.warn('Unknown pattern', pn, 'in', raw.title); patterns[pn] = { name: pn, steps, bars: 1, tracks: {} }; }
         const cb = s.chords ? s.chords.split('|') : null;
         const chords = cb ? cb[b % cb.length].trim().split(/\s+/).filter(Boolean) : null;
         timeline.push({ si, b, pn, pb, chords: chords && chords.length ? chords : null });
       }
-      return { name: s.name, bars: s.bars, chords: s.chords || '', inst: !!s.inst, rate: s.bpm ? s.bpm / raw.bpm : 1, start, end: timeline.length - 1, color: secColor(s.name) };
+      return { name: s.name, bars: nBars, chords: s.chords || '', inst: !!s.inst, rate: s.bpm ? s.bpm / raw.bpm : 1, start, end: timeline.length - 1, color: secColor(s.name) };
     });
     const used = new Set();
     Object.values(patterns).forEach((p) => Object.keys(p.tracks).forEach((k) => used.add(k)));
@@ -74,6 +76,7 @@
       shift: (raw.capo || 0) + (raw.transpose || 0),
       tuneLabel: raw.capo ? `Capo ${raw.capo}` : (raw.tuning || ''),
       hasChords: raw.sections.some((x) => x.chords),
+      mixed: raw.sections.some((x) => x.seq),
       drums: DRUMS.map((d) => d[0]).filter((k) => used.has(k)),
       lyrics: local.lyrics != null ? local.lyrics : (raw.lyrics || ''),
     };
@@ -282,7 +285,7 @@
     // slash chords / inversions
     'D4/A': 'x00233', 'G/D': 'xx0433', 'Bm/A': 'x04432', 'F#7/E': '0x4320', 'D/C#': 'x4x232', 'E7/G#': '4x0100',
     'A/G#': '4x2220', 'G/F#': '2x0003', 'Dm/C': 'x3x231', 'G7/B': 'x2x001', 'C/B': 'x2x010', 'Bb/A': 'x0333x',
-    'D/F#': '2x0232', 'C/G': '332010', 'G/B': 'x20003', 'Am/G': '3x2210', 'D/A': 'x00232',
+    'D/F#': '2x0232', 'A7/C#': 'x42223', 'B7/D#': 'x6x475', 'C/E': '032010', 'C/G': '332010', 'G/B': 'x20003', 'Am/G': '3x2210', 'D/A': 'x00232',
   };
   // movable fallbacks: [root on low E, root on A], relative frets
   const MOVABLE = {
@@ -371,11 +374,12 @@
 
   const pat = (name) => song.patterns[name];
   const barSteps = (bar) => (bar < 0 ? song.beats : pat(song.timeline[bar].pn).steps);
+  const barBeats = (bar) => (bar < 0 ? song.beats : pat(song.timeline[bar].pn).beats || song.beats);
   // A section may set its own bpm (songs that speed up); it scales with the user's tempo.
   const rateAt = (bar) => song.sections[song.timeline[bar < 0 ? P.startBar : bar].si].rate;
-  const stepDur = (bar) => (song.beats * 60 / (S.bpm * rateAt(bar))) / barSteps(bar);
+  const stepDur = (bar) => (barBeats(bar) * 60 / (S.bpm * rateAt(bar))) / barSteps(bar);
   function beatOf(bar, step) {
-    const per = barSteps(bar) / song.beats;
+    const per = barSteps(bar) / barBeats(bar);
     const q = step / per;
     return Math.abs(q - Math.round(q)) < 1e-6 ? Math.round(q) : -1;
   }
@@ -482,6 +486,7 @@
   function showPosition(bar, step) {
     const barChanged = bar !== D.bar;
     D.bar = bar; D.step = step;
+    if (barBeats(bar) !== D.dotBeats) renderBeatDots(barBeats(bar));
     const dots = $$('#beatDots .dot');
     const beat = step >= 0 ? beatOf(bar, step) : -1;
     if (beat >= 0 || step < 0) dots.forEach((d, i) => { d.classList.toggle('on', i === beat && bar >= 0); d.classList.toggle('count', i === beat && bar < 0); });
@@ -494,7 +499,7 @@
     const tl = song.timeline[bar];
     const sec = song.sections[tl.si];
     if (barChanged) {
-      $('#posLabel').innerHTML = `${esc(sec.name)} <small>· bar ${tl.b + 1}/${sec.bars}${sec.rate !== 1 ? ` · ${Math.round(S.bpm * sec.rate)} bpm` : ''}</small>`;
+      $('#posLabel').innerHTML = `${esc(sec.name)} <small>· bar ${tl.b + 1}/${sec.bars}${song.mixed ? ` · ${barBeats(bar)}/4` : ''}${sec.rate !== 1 ? ` · ${Math.round(S.bpm * sec.rate)} bpm` : ''}</small>`;
       renderGridBar(bar);
       $$('#sections .sec').forEach((el, i) => {
         el.classList.toggle('active', i === tl.si);
@@ -551,7 +556,8 @@
         const el = document.createElement('button');
         el.className = 'bar';
         const list = tl.chords ? collapse(tl.chords) : ['N.C.'];
-        el.innerHTML = list.map((c) => (isRest(c) ? '<span class="rest">—</span>' : `<span>${esc(c)}</span>`)).join('');
+        el.innerHTML = list.map((c) => (isRest(c) ? '<span class="rest">—</span>' : `<span>${esc(c)}</span>`)).join('')
+          + (song.mixed ? `<em class="meter">${barBeats(b)}/4</em>` : '');
         el.onclick = () => jumpToBar(b);
         bars.appendChild(el);
         D.chartBars[b] = el;
@@ -603,16 +609,18 @@
     }
   }
 
-  function renderBeatDots() {
-    $('#beatDots').innerHTML = Array.from({ length: song.beats }, (_, i) => `<i class="dot${i === 0 ? ' first' : ''}"></i>`).join('');
+  function renderBeatDots(n = song.beats) {
+    D.dotBeats = n;
+    $('#beatDots').innerHTML = Array.from({ length: n }, (_, i) => `<i class="dot${i === 0 ? ' first' : ''}"></i>`).join('');
   }
 
-  function buildGrid(steps) {
+  function buildGrid(steps, beats = song.beats) {
     const g = $('#grid');
     g.innerHTML = '';
     D.grid = [];
     D.gridSteps = steps;
-    const per = steps / song.beats;
+    D.gridBeats = beats;
+    const per = steps / beats;
     song.drums.forEach((k) => {
       const row = document.createElement('div');
       row.className = 'grow' + (S.muted.has(k) ? ' muted' : '');
@@ -642,7 +650,7 @@
   function renderGridBar(bar) {
     const tl = song.timeline[bar];
     const p = pat(tl.pn);
-    if (p.steps !== D.gridSteps || !D.grid) buildGrid(p.steps);
+    if (p.steps !== D.gridSteps || barBeats(bar) !== D.gridBeats || !D.grid) buildGrid(p.steps, barBeats(bar));
     $('#patName').textContent = `· ${tl.pn}${p.bars > 1 ? ` ${tl.pb + 1}/${p.bars}` : ''}`;
     song.drums.forEach((k, r) => {
       const str = p.tracks[k] || '';

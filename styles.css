@@ -137,6 +137,9 @@ input, textarea { font: inherit; color: inherit; }
 .bar { min-height: 38px; padding: 4px 6px; border-radius: 6px; background: var(--cell); text-align: left; font-size: 13px; font-weight: 700;
   display: flex; flex-wrap: wrap; align-content: center; gap: 0 6px; overflow: hidden; }
 .bar .rest { color: var(--dim); font-weight: 500; }
+.bar { position: relative; }
+.bar .meter { position: absolute; right: 4px; bottom: 2px; font-size: 9px; font-style: normal; font-weight: 600; color: var(--dim); }
+.bar.on .meter { color: #fff; }
 .bar.on { background: var(--accent); color: #fff; }
 .bar.on .rest { color: #fff; }
 .chart-empty { color: var(--dim); }

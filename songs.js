@@ -12,7 +12,7 @@
  *   patterns  { name: { steps?, KEY: 'x-x-...' } }  — one string per drum.
  *             A string longer than `steps` spans several bars (e.g. 32 chars = 2 bars of 16ths).
  *             Spaces and '|' are ignored, so you can write 'x-x- x-x- | x-x- x-x-'.
- *   sections  [{ name, bars, pattern, first?, fill?, bpm?, chords? }] — the song's arrangement in order.
+ *   sections  [{ name, bars, pattern, first?, fill?, bpm?, chords?, seq? }] — the song's arrangement in order.
  *             `first` replaces the first bar (e.g. a crash bar), `fill` replaces the last bar.
  *   lyrics    optional text. Headers in [brackets] are matched to section names.
  *             A header like [Chorus] also matches "Chorus 2", so a chorus can be written once.
@@ -22,6 +22,8 @@
  *   (section) chords: bars split by '|', chords in a bar share it evenly ('Am G | C' = 2 beats each,
  *             then a full bar of C). Cycles if shorter than the section. 'N.C.' = no chord.
  *             A soft chord cue sounds on each change; the chord is shown on screen.
+ *   (section) seq: one pattern name per bar instead of bars/pattern — for songs whose meter
+ *             changes bar to bar. A pattern can set its own `beats` (e.g. 3 for a 3/4 bar).
  *   (section) bpm: own tempo for that part (scales with the tempo you set).
  *   (section) inst: true marks a part with no singing, so pasted lyrics skip it.
  *
@@ -1249,3 +1251,59 @@ SONGS.push({
 [Outro]
 (to the end)`,
 });
+
+/* ------------------------------------------------------------------
+ * Blackbird — The Beatles (1968)
+ * Solo acoustic guitar with Paul's foot tapping; no drums. ~96 BPM, key of G.
+ * The meter keeps shifting between 3/4, 4/4 and 2/4, so each bar is listed
+ * with its own length (seq). The "drums" here are just a soft foot tap on
+ * every beat. The meter map and chord placement follow common fan
+ * transcriptions, which disagree in places — treat bar lengths as approximate.
+ * Lyrics are not bundled (copyright) — paste them via Lyrics → Edit → Paste.
+ * ------------------------------------------------------------------ */
+(() => {
+  const m = (str) => str.split(' ').map((n) => 'tap' + n).join(' ');
+  const VERSE_SEQ = m('3 4 4 4 2 4 4 2 4 4 3 4');
+  const VERSE = 'G | Am7 Am7 G/B G | C A7/C# D D | B7/D# B7/D# Em Em | Cm | D | A7/C# | C | Cm | G G A7 A7 | C/G C/G G | G';
+  SONGS.push({
+    id: 'blackbird',
+    title: 'Blackbird',
+    artist: 'The Beatles',
+    bpm: 96,
+    timeSig: 'mixed 3/4 · 4/4 · 2/4',
+    beats: 4,
+    steps: 8,
+    patterns: {
+      tap2: { beats: 2, steps: 4, BD: 'g-g-', HP: 'x-x-' },
+      tap3: { beats: 3, steps: 6, BD: 'g-g-g-', HP: 'x-x-x-' },
+      tap4: { beats: 4, steps: 8, BD: 'g-g-g-g-', HP: 'x-x-x-x-' },
+    },
+    sections: [
+      { name: 'Intro', inst: true, seq: m('3 4 3 4'), chords: 'G | Am7 Am7 G/B G | G | Am7 Am7 G/B G' },
+      { name: 'Verse 1', seq: VERSE_SEQ, chords: VERSE },
+      { name: 'Interlude', inst: true, seq: m('3 4'), chords: 'G | Am7 Am7 G/B G' },
+      { name: 'Verse 2', seq: VERSE_SEQ, chords: VERSE },
+      { name: 'Bridge', seq: m('4 4 4 4 4 4 2 4'), chords: 'F | C/E | Dm | C | Bb6 | C | A7 | D7' },
+      { name: 'Interlude 2', inst: true, seq: m('3 4'), chords: 'G | Am7 Am7 G/B G' },
+      { name: 'Verse 3', seq: VERSE_SEQ, chords: VERSE },
+      { name: 'Bridge 2', seq: m('4 4 4 4 4 4 2 4'), chords: 'F | C/E | Dm | C | Bb6 | C | A7 | D7' },
+      { name: 'Outro', seq: m('4 4 3 3 4 3 4'), chords: 'Cm | G G A7 A7 | C/G C/G G | G | Am7 Am7 G/B G | G | G' },
+    ],
+    lyrics: `[Intro]
+(guitar alone — foot tap only)
+(Tap Lyrics → Edit to paste the full lyrics under these headers.)
+
+[Verse 1]
+("Blackbird singing…")
+
+[Verse 2]
+
+[Bridge]
+("Blackbird fly…")
+
+[Verse 3]
+
+[Outro]
+(guitar)`,
+  });
+})();
