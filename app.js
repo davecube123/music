@@ -18,9 +18,10 @@
     del(k) { try { localStorage.removeItem(k); } catch { /* ignore */ } },
   };
   const prefs = Object.assign(
-    { click: true, countIn: true, cue: true, strum: true, drumVol: 0.9, clickVol: 0.55, cueVol: 0.6, strumVol: 0.7, lyricSize: 19, tab: 'lyrics' },
+    { click: true, countIn: true, cue: true, strum: true, drumVol: 0.9, clickVol: 0.55, cueVol: 0.6, strumVol: 0.9, lyricSize: 19, tab: 'lyrics' },
     store.get('bb.prefs', {}),
   );
+  if (prefs.strumVol === 0.7) prefs.strumVol = 0.9; // old default was too quiet
   const savePrefs = () => store.set('bb.prefs', prefs);
   const songKey = (id) => 'bb.song.' + id;
   const loadLocal = (id) => store.get(songKey(id), {});
@@ -110,7 +111,11 @@
     drumBus = ctx.createGain(); drumBus.connect(comp);
     clickBus = ctx.createGain(); clickBus.connect(ctx.destination);
     cueBus = ctx.createGain(); cueBus.connect(ctx.destination);
-    strumBus = ctx.createGain(); strumBus.connect(comp);
+    // own gentle compressor so the drums don't squash the strum (and loud strokes can't clip)
+    const strumComp = ctx.createDynamicsCompressor();
+    strumComp.threshold.value = -8; strumComp.ratio.value = 3; strumComp.attack.value = 0.003; strumComp.release.value = 0.08;
+    strumComp.connect(ctx.destination);
+    strumBus = ctx.createGain(); strumBus.connect(strumComp);
     applyVolumes();
     const len = ctx.sampleRate * 3;
     noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
@@ -280,23 +285,28 @@
   /* ---------------- strum track (rhythm only, no pitch) ---------------- */
   // A strummed guitar's rhythm without its notes: filtered noise swept across the
   // "strings" — downstrokes sweep up and sound fuller, upstrokes sweep down and lighter.
+  function strumSweep(t, f0, f1, q, peak, dur, att) {
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass'; bp.Q.value = q;
+    bp.frequency.setValueAtTime(f0, t);
+    bp.frequency.exponentialRampToValueAtTime(f1, t + 0.035);
+    noise(t, dur).connect(bp).connect(env(t, peak, dur, strumBus, att));
+  }
   function strumSound(t, ch) {
-    const soft = ch === 'd' || ch === 'u';
-    const v = soft ? 0.55 : 1;
-    if (ch === 'D' || ch === 'd' || ch === 'U' || ch === 'u') {
-      const down = ch === 'D' || ch === 'd';
-      const dur = down ? 0.16 : 0.11;
-      const bp = ctx.createBiquadFilter();
-      bp.type = 'bandpass'; bp.Q.value = 1.1;
-      bp.frequency.setValueAtTime(down ? 650 : 2600, t);
-      bp.frequency.exponentialRampToValueAtTime(down ? 2600 : 1300, t + 0.03);
-      noise(t, dur).connect(bp).connect(env(t, v * (down ? 0.55 : 0.32), dur, strumBus, 0.004));
-      if (down) osc('triangle', t, 140, 110, 0.05, 0.06).connect(env(t, v * 0.12, 0.06, strumBus));
-    } else if (ch === 'x') { // muted chuck
-      noise(t, 0.04).connect(filt('bandpass', 1800, 0.9)).connect(env(t, 0.45, 0.035, strumBus));
-      osc('sine', t, 160, 90, 0.03, 0.04).connect(env(t, 0.15, 0.035, strumBus));
-    } else if (ch === 'p') { // single picked note, as a soft tick
-      noise(t, 0.05).connect(filt('bandpass', 2400, 5)).connect(env(t, 0.32, 0.05, strumBus));
+    const v = ch === 'd' || ch === 'u' ? 0.6 : 1;
+    if (ch === 'D' || ch === 'd') {        // downstroke: low → high sweep, with some body
+      strumSweep(t, 450, 2200, 0.55, v * 1.7, 0.22, 0.006);
+      noise(t, 0.12).connect(filt('highpass', 3200)).connect(env(t, v * 0.35, 0.12, strumBus, 0.006));
+      osc('triangle', t, 125, 100, 0.06, 0.1).connect(env(t, v * 0.3, 0.09, strumBus));
+    } else if (ch === 'U' || ch === 'u') { // upstroke: high → low sweep, lighter
+      strumSweep(t, 3200, 1400, 0.6, v * 1.05, 0.15, 0.004);
+      noise(t, 0.08).connect(filt('highpass', 3500)).connect(env(t, v * 0.3, 0.08, strumBus, 0.004));
+    } else if (ch === 'x') {               // muted chuck
+      noise(t, 0.06).connect(filt('bandpass', 1500, 0.8)).connect(env(t, 1.5, 0.05, strumBus));
+      osc('sine', t, 170, 90, 0.03, 0.05).connect(env(t, 0.45, 0.045, strumBus));
+    } else if (ch === 'p') {               // single picked note, as a soft tick
+      noise(t, 0.09).connect(filt('bandpass', 2000, 1.4)).connect(env(t, 1.3, 0.085, strumBus, 0.002));
+      osc('triangle', t, 330, 0, 0, 0.09).connect(env(t, 0.18, 0.08, strumBus));
     }
   }
   const STRUM_GLYPH = { D: '↓', d: '↓', U: '↑', u: '↑', x: '✕', p: '•', '-': '' };
