@@ -1328,3 +1328,78 @@ SONGS.push({
 (guitar)`,
   });
 })();
+
+/* ------------------------------------------------------------------
+ * Pink + White — Frank Ocean (2016)
+ * 6/8 at ~160 eighth notes per minute = ~53 dotted-quarter beats (2 per bar),
+ * key of A, no capo. One loop all the way through: Cmaj7 | Bm7 | A | A.
+ * Drums (programmed by Pharrell on the record) approximated: relaxed 6/8
+ * with kick on 1, snare on the second big beat, flowing hi-hat.
+ * Lyrics are not bundled (copyright) — paste them via Lyrics → Edit → Paste.
+ * ------------------------------------------------------------------ */
+SONGS.push({
+  id: 'pink-white',
+  title: 'Pink + White',
+  artist: 'Frank Ocean',
+  bpm: 53,
+  strum: 'p-p-p-p-p-p-',
+  timeSig: '6/8',
+  beats: 2,
+  steps: 12,
+  patterns: {
+    intro: {
+      HH: 'x-x-x-x-x-x-',
+      BD: 'X-----------',
+    },
+    verse: {
+      HH: 'x-x-x-x-x-x-',
+      SN: '------X-----',
+      BD: 'X-------x---',
+    },
+    chorus: {
+      HH: 'x-x-x-x-x-xo',
+      SN: '------X---g-',
+      BD: 'X---x---x---',
+    },
+    chorusIn: {
+      CR: 'X-----------',
+      HH: '--x-x-x-x-xo',
+      SN: '------X---g-',
+      BD: 'X---x---x---',
+    },
+    fill: {
+      HH: 'x-x-x-------',
+      SN: '------X-xxXX',
+      BD: 'X-----------',
+    },
+    ending: {
+      CR: 'X-----------',
+      BD: 'X-----------',
+    },
+  },
+  sections: [
+    { name: 'Intro', inst: true, bars: 4, pattern: 'intro', chords: 'Cmaj7 | Bm7 | A | A' },
+    { name: 'Verse 1', bars: 16, pattern: 'verse', fill: 'fill', chords: 'Cmaj7 | Bm7 | A | A' },
+    { name: 'Chorus', bars: 8, pattern: 'chorus', first: 'chorusIn', fill: 'fill', chords: 'Cmaj7 | Bm7 | A | A' },
+    { name: 'Verse 2', bars: 16, pattern: 'verse', fill: 'fill', chords: 'Cmaj7 | Bm7 | A | A' },
+    { name: 'Chorus 2', bars: 8, pattern: 'chorus', first: 'chorusIn', fill: 'fill', chords: 'Cmaj7 | Bm7 | A | A' },
+    { name: 'Bridge', bars: 8, pattern: 'verse', fill: 'fill', chords: 'Cmaj7 | Bm7 | A | A' },
+    { name: 'Chorus 3', bars: 16, pattern: 'chorus', first: 'chorusIn', chords: 'Cmaj7 | Bm7 | A | A' },
+    { name: 'Outro', inst: true, bars: 4, pattern: 'intro', fill: 'ending', chords: 'Cmaj7 | Bm7 | A | A' },
+  ],
+  lyrics: `[Intro]
+(guitar and piano)
+(Tap Lyrics → Edit to paste the full lyrics under these headers.)
+
+[Verse 1]
+("That's the way everyday goes…")
+
+[Chorus]
+
+[Verse 2]
+
+[Bridge]
+
+[Outro]
+(to the end)`,
+});
