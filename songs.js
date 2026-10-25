@@ -1403,3 +1403,56 @@ SONGS.push({
 [Outro]
 (to the end)`,
 });
+
+/* ------------------------------------------------------------------
+ * I Could Be a Florist — Olivia Dean (2023)
+ * A short (1:21), stripped-back demo on the album Messy. ~116 BPM (some sites
+ * list 58, the same tempo counted in half time), key of C, no capo.
+ * Chords from fan transcriptions (they differ in detail): mainly F G C, a
+ * Dm7 G turnaround, and an Am / F#m7 section near the end; the exact order
+ * is an estimate. No real drum part on the record, so "drums" here are only a
+ * soft pulse to keep time — mute them if you like. Strum per UkuTabs:
+ * d u d U d u d U.
+ * Lyrics are not bundled (copyright) — paste them via Lyrics → Edit → Paste.
+ * ------------------------------------------------------------------ */
+SONGS.push({
+  id: 'i-could-be-a-florist',
+  title: 'I Could Be a Florist',
+  artist: 'Olivia Dean',
+  bpm: 116,
+  strum: 'dudUdudU',
+  timeSig: '4/4',
+  beats: 4,
+  steps: 8,
+  patterns: {
+    pulse: {
+      HP: '--x---x-',
+      BD: 'g---g---',
+    },
+    ending: {
+      BD: 'g-------',
+    },
+  },
+  sections: [
+    { name: 'Intro', inst: true, bars: 4, pattern: 'pulse', chords: 'F | G | C | C' },
+    { name: 'Verse 1', bars: 8, pattern: 'pulse', chords: 'F | G | C | C' },
+    { name: 'Chorus', bars: 8, pattern: 'pulse', chords: 'Dm7 | G | C | Am | Dm7 | G | C | C' },
+    { name: 'Verse 2', bars: 8, pattern: 'pulse', chords: 'F | G | C | C' },
+    { name: 'Bridge', bars: 8, pattern: 'pulse', chords: 'Am | F#m7 | F | G | Am | F#m7 | Dm7 | G' },
+    { name: 'Outro', bars: 3, pattern: 'pulse', fill: 'ending', strum: 'dudUD---', chords: 'F | G | C' },
+  ],
+  lyrics: `[Intro]
+(soft pulse only — the record has no real drum part)
+(Tap Lyrics → Edit to paste the full lyrics under these headers.)
+
+[Verse 1]
+
+[Chorus]
+
+[Verse 2]
+
+[Bridge]
+
+[Outro]
+(last chord)`,
+});

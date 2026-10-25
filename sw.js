@@ -1,7 +1,7 @@
 // Network-first so new songs show up as soon as you're online; cache keeps it working offline.
 // Requests skip the browser's HTTP cache (GitHub Pages lets it keep files ~10 min),
 // so an update is picked up on the very next launch.
-const CACHE = 'backbeat-v20';
+const CACHE = 'backbeat-v21';
 const SHELL = ['./', 'index.html', 'styles.css', 'app.js', 'songs.js', 'manifest.webmanifest',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png'];
 
