@@ -1456,3 +1456,90 @@ SONGS.push({
 [Outro]
 (last chord)`,
 });
+
+/* ------------------------------------------------------------------
+ * Brightest Lights — Lane 8 feat. POLIÇA (2020)
+ * Deep house, ~124 BPM, 4/4. Programmed drums and synths, no guitar, so
+ * there's no strum track. Chords per Chordify's analysis (key labels differ
+ * between versions): Cm Eb Gm Bb, played as a slow 2-bars-per-chord loop.
+ * Drums follow the standard house pattern: kick on every beat, snare/clap on
+ * 2 & 4, open hats on the off-beats; the breakdown drops the kick and a snare
+ * roll builds back into the drop. Section lengths approximate the edit.
+ * Lyrics are not bundled (copyright) — paste them via Lyrics → Edit → Paste.
+ * ------------------------------------------------------------------ */
+SONGS.push({
+  id: 'brightest-lights',
+  title: 'Brightest Lights',
+  artist: 'Lane 8 feat. POLIÇA',
+  bpm: 124,
+  timeSig: '4/4',
+  beats: 4,
+  steps: 16,
+  patterns: {
+    intro: {
+      HH: '--o---o---o---o-',
+      BD: 'X---X---X---X---',
+    },
+    groove: {
+      HH: 'xgo-xgo-xgo-xgo-',
+      SN: '----X-------X---',
+      BD: 'X---X---X---X---',
+    },
+    drop: {
+      HH: 'xgoxxgoxxgoxxgox',
+      SN: '----X-------X---',
+      BD: 'X---X---X---X---',
+    },
+    dropIn: {
+      CR: 'X---------------',
+      HH: '--oxxgoxxgoxxgox',
+      SN: '----X-------X---',
+      BD: 'X---X---X---X---',
+    },
+    breakdown: {
+      HH: 'g-g-g-g-g-g-g-g-',
+    },
+    build: {
+      SN: 'x---x---x---x--- x-x-x-x-x-x-x-x- xxxxxxxxxxxxxxxx XXXXXXXXXXXXXXXX',
+      BD: 'X---X---X---X--- X---X---X---X--- X---X---X---X--- X---X---X---X---',
+    },
+    outro: {
+      HH: '--o---o---o---o-',
+      BD: 'X---X---X---X---',
+    },
+    ending: {
+      CR: 'X---------------',
+      BD: 'X---------------',
+    },
+  },
+  sections: [
+    { name: 'Intro', inst: true, bars: 16, pattern: 'intro', chords: 'Cm | Cm | Eb | Eb | Gm | Gm | Bb | Bb' },
+    { name: 'Verse 1', bars: 16, pattern: 'groove', chords: 'Cm | Cm | Eb | Eb | Gm | Gm | Bb | Bb' },
+    { name: 'Chorus', bars: 16, pattern: 'drop', first: 'dropIn', chords: 'Cm | Cm | Eb | Eb | Gm | Gm | Bb | Bb' },
+    { name: 'Verse 2', bars: 16, pattern: 'groove', first: 'dropIn', chords: 'Cm | Cm | Eb | Eb | Gm | Gm | Bb | Bb' },
+    { name: 'Breakdown', bars: 16, pattern: 'breakdown', chords: 'Cm | Cm | Eb | Eb | Gm | Gm | Bb | Bb' },
+    { name: 'Build', inst: true, bars: 4, pattern: 'build', chords: 'Gm | Gm | Bb | Bb' },
+    { name: 'Drop', bars: 16, pattern: 'drop', first: 'dropIn', chords: 'Cm | Cm | Eb | Eb | Gm | Gm | Bb | Bb' },
+    { name: 'Outro', inst: true, bars: 16, pattern: 'outro', fill: 'ending', chords: 'Cm | Cm | Eb | Eb | Gm | Gm | Bb | Bb' },
+  ],
+  lyrics: `[Intro]
+(kick and hats)
+(Tap Lyrics → Edit to paste the full lyrics under these headers.)
+
+[Verse 1]
+
+[Chorus]
+
+[Verse 2]
+
+[Breakdown]
+(no kick — synths and vocals)
+
+[Build]
+(snare roll)
+
+[Drop]
+
+[Outro]
+(beat to the end)`,
+});
